@@ -8,7 +8,7 @@
  *  Thijs Vader
  *  Rutger Jansen
  * 
- * Hogeschool Utrechte
+ * Hogeschool Utrecht
  * Date: 29-04-2024
  * 
  * Version: 1.1.0
