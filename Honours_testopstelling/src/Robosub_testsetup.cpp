@@ -41,6 +41,7 @@ Servo *pEsc = &esc; // !! DIT nog slim aanpassen met pointers
 
 void armESC();
 int readVernier(int pin);
+void sweepMotor(Servo *pESC);
 
 void setup() {
   Serial.begin(9600);  // initialize serial communication at 9600 bits per second:
