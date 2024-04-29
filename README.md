@@ -5,6 +5,7 @@
 - [Intro](#Introduction)
 - [Getting Started](#getting-started)
   - [Installation](#Installation)
+- [To-Do](#to-do)
 - [Sharepoint](#sharepoint)
 
 ## Introduction
@@ -19,6 +20,15 @@
 3. Install Github Desktop / vs-code github 
 4. Clone this repor (git clone) 
 5. Make a branch of the main per new SW function
+
+## To-Do
+- [X] make README 
+- [] pin definition
+- [] write function read Vernier sensor
+- [] test read Vernier
+- [] write function LCD screen
+- [] test reading Vernier force sensor
+- [] UART / serialplotter output
 
 ## Sharepoint
 <a href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx" target="_blank"><img src="images/RoboSub_logo.png" alt="logo RoboSUn"  width="100"/> <br> RoboSub (EXT) </a>
