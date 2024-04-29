@@ -387,6 +387,7 @@ FodyWeavers.xsd
 # Built Visual Studio Code Extensions
 *.vsix
 
+# Visual Studio Code workspace
 #*.code-workspace
 
 # Local History for Visual Studio Code
