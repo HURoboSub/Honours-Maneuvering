@@ -21,4 +21,4 @@
 5. Make a branch of the main per new SW function
 
 ## Sharepoint
-<p> <img src="images/RoboSub_logo.png" alt="drawing" href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx" target="_blank" width="100"/> RoboSub (EXT)</p>
+<p> <a href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx"><img src="images/RoboSub_logo.png" alt="drawing" target="_blank" width="100"/> RoboSub (EXT) </a> </p>
