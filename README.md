@@ -28,6 +28,8 @@
 - [ ] test read Vernier
 - [ ] write function LCD screen
 - [ ] test reading Vernier force sensor
+- [ ] write function servo program
+- [ ] test servo program 0 - 100 %
 - [ ] UART / serialplotter output
 
 ## Sharepoint
