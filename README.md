@@ -23,14 +23,14 @@
 
 ## To-Do
 - [X] make README 
-- [] pin definition
-- [] write function read Vernier sensor
-- [] test read Vernier
-- [] write function LCD screen
-- [] test reading Vernier force sensor
-- [] UART / serialplotter output
+- [ ] pin definition
+- [ ] write function read Vernier sensor
+- [ ] test read Vernier
+- [ ] write function LCD screen
+- [ ] test reading Vernier force sensor
+- [ ] UART / serialplotter output
 
 ## Sharepoint
-<a href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx" target="_blank"><img src="images/RoboSub_logo.png" alt="logo RoboSUn"  width="100"/> <br> RoboSub (EXT) </a>
+<a href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx" target="_blank"><img src="images/RoboSub_logo.png" alt="logo RoboSub"  width="100"/> <br> RoboSub (EXT) </a>
 
 [Microsoft Teams - Robosub (EXT)](https://teams.microsoft.com/l/team/19%3A15CCBrzAxFNYSKObK1CGoetBEwihwAm-_twrglIF83A1%40thread.tacv2/conversations?groupId=6f8a9cd1-c804-4121-ba97-c6f4a1464002&tenantId=98932909-9a5a-4d18-ace4-7236b5b5e11d) 
