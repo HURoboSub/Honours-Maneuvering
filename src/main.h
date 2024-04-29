@@ -18,6 +18,11 @@
  *
  */
 
+#ifndef MAIN_H
+#define MAIN_H
+
+#include <Arduino.h>
+
 #include <Arduino.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h> // LCD SCREEN
@@ -26,3 +31,9 @@
 
 // button debounce lib
 // UART serialplotter lib?
+
+void armESC();
+int readVernier();
+void sweepMotor(Servo *pESC);
+
+#endif
