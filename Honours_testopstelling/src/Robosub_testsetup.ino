@@ -39,7 +39,7 @@ Servo *pEsc = &esc; // !! DIT nog slim aanpassen met pointers
 
 void loop();
 void armESC();
-void readVernier(int pin);
+int readVernier(int pin);
 
 void setup() {
   Serial.begin(9600);  // initialize serial communication at 9600 bits per second:
@@ -63,7 +63,7 @@ void armESC() {
   Function:
   Parameters: the AnalogPin to where the Vernier is connected to
  */
-void readVernier(int pin) {
+int readVernier(int pin) {
   float sensorVoltage; // declares a variable named sensorVoltage
   // read the input on analog pin 0:
   int sensorValue = analogRead(pin);
