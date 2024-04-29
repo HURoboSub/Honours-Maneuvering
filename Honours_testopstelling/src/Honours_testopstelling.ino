@@ -3,21 +3,59 @@
 // liquid crystal
 // 
 
-// Define ESC control pin
-int escPin = 9;
+#define DEBUG // (Serial) debug mode (un)comment to toggle
+
+// pin definitions
+int escPin = 9; // Define ESC control pin
+int VernierPin = A0;
 
 // Create a Servo object
 Servo esc;
+Servo *pEsc = &esc; // dit nog slim aanpassen met pointers
+
+void loop();
+void armESC();
+void readVernier(int pin);
 
 void setup() {
-  // Attach the ESC to the specified pin
-  esc.attach(escPin);
-
-  // Arm the ESC
-  armESC();
+  Serial.begin(9600);  // initialize serial communication at 9600 bits per second:
+  
+  esc.attach(escPin); // Attach the ESC to the specified pin
+ 
+  armESC();  // Arm the ESC
 }
 
 void loop() {
+  readVernier(VernierPin);
+  sweepMotor(pEsc);
+}
+
+void armESC() {
+  esc.writeMicroseconds(1000);  // Send a signal to the ESC to arm it
+  delay(1000);
+}
+
+/*
+  Function:
+  Parameters: the AnalogPin to where the Vernier is connected to
+ */
+void readVernier(int pin) {
+  float sensorVoltage; // declares a variable named sensorVoltage
+  // read the input on analog pin 0:
+  int sensorValue = analogRead(pin);
+  sensorVoltage = sensorValue * 5.0 / 1023;// Converts the count to the sensor voltage
+  // print out the value you read:
+  Serial.println(sensorVoltage);
+
+  delay(500);        // delay in between reads in milliseconds
+  return sensorVoltage;
+}
+
+/*
+  Function: sweepMotor 
+  params: pointer to Servo object
+*/
+void sweepMotor(Servo *pESC){
   // Sweep the motor speed from minimum to maximum
   for (int speed = 1000; speed <= 2000; speed += 10) {
     esc.writeMicroseconds(speed);
@@ -29,31 +67,4 @@ void loop() {
     esc.writeMicroseconds(speed);
     delay(50);
   }
-}
-
-void armESC() {
-  // Send a signal to the ESC to arm it
-  esc.writeMicroseconds(1000);
-  delay(1000);
-}
-
-/*
-  Read Vernier sensor
-  
-*/
-// the setup routine runs once when you press reset:
-void setup() {
-  // initialize serial communication at 9600 bits per second:
-  Serial.begin(9600);
-}
-
-// the loop routine runs over and over again forever:
-void loop() {
-  float sensorVoltage; // declares a variable named sensorVoltage
-  // read the input on analog pin 0:
-  int sensorValue = analogRead(A0);
-  sensorVoltage = sensorValue * 5.0 / 1023;// Converts the count to the sensor voltage
-  // print out the value you read:
-  Serial.println(sensorVoltage);
-  delay(500);        // delay in between reads in milliseconds
 }
