@@ -25,9 +25,9 @@
 - [X] make README 
 - [ ] pin definition
 - [X] write function read Vernier sensor
-- [ ] test read Vernier
-- [X] write function LCD screen
 - [ ] test reading Vernier force sensor
+- [X] write function LCD screen
+- [ ] test LCD screen
 - [ ] write function servo program
 - [ ] test servo program 0 - 100 %
 - [ ] UART / serialplotter output
