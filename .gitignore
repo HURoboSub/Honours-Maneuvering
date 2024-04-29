@@ -382,6 +382,11 @@ FodyWeavers.xsd
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Built Visual Studio Code Extensions
+*.vsix
+
 #*.code-workspace
 
 # Local History for Visual Studio Code
@@ -426,6 +431,13 @@ FodyWeavers.xsd
 *.exe
 *.out
 *.app
+
+#platform io 
+.pioenvs
+.piolibdeps
+.clang_complete
+.gcc-flags.json
+.pio
 
 # # STM32ide specific
 .metadata/**
