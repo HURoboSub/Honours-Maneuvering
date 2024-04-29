@@ -1,21 +1,45 @@
+/*
+ * Platformio Arduino code for the Robosub UNO test setup 
+ *
+ * authors: 
+ *  Jannick Bloemendal
+ *  Niels Redegeld
+ *  Thijs Vader
+ *  Rutger Jansen
+ * 
+ * Hogeschool Utrechte
+ * Date: 29-04-2024
+ * 
+ * Version: 1.1.0
+ * 
+ * CHANGELOG:
+ * 
+ * 
+ */
+
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h> // LCD SCREEN
 #include <Servo.h>
-//debounce
-// liquid crystal
+// button debounce lib
 // 
 
 #define DEBUG // (Serial) debug mode (un)comment to toggle
 
 // pin definitions
 int escPin = 9; // Define ESC control pin
-int VernierPin = A0;
+
+int VernierPin = A0; //Vernier force interface
+
+// LCD i2c
+// x times a button
 
 // Create a Servo object
 Servo esc;
-Servo *pEsc = &esc; // dit nog slim aanpassen met pointers
+Servo *pEsc = &esc; // !! DIT nog slim aanpassen met pointers
 
 void loop();
 void armESC();
-void readVernier(int pin);
+int readVernier(int pin);
 
 void setup() {
   Serial.begin(9600);  // initialize serial communication at 9600 bits per second:
@@ -39,7 +63,7 @@ void armESC() {
   Function:
   Parameters: the AnalogPin to where the Vernier is connected to
  */
-void readVernier(int pin) {
+int readVernier(int pin) {
   float sensorVoltage; // declares a variable named sensorVoltage
   // read the input on analog pin 0:
   int sensorValue = analogRead(pin);
