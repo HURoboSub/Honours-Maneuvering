@@ -18,7 +18,7 @@
  *
  */
 
-#include <main.h> // main header file 
+#include "main.h" // main header file 
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
 
