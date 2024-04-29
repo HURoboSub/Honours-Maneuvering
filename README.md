@@ -24,9 +24,9 @@
 ## To-Do
 - [X] make README 
 - [ ] pin definition
-- [ ] write function read Vernier sensor
+- [X] write function read Vernier sensor
 - [ ] test read Vernier
-- [ ] write function LCD screen
+- [X] write function LCD screen
 - [ ] test reading Vernier force sensor
 - [ ] write function servo program
 - [ ] test servo program 0 - 100 %
