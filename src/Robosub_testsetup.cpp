@@ -85,6 +85,10 @@ void loop()
   delay(timeBtwnReadings); // stabilize time between readings (FUTURE maybe timer?)
 }
 
+/*
+  Function:
+  Parameters: 
+ */
 void armESC()
 {
   esc.writeMicroseconds(1000); // Send a signal to the ESC to arm it
@@ -93,7 +97,7 @@ void armESC()
 
 /*
   Function:
-  Parameters: the AnalogPin to where the Vernier is connected to
+  Parameters: 
  */
 int readVernier()
 {
