@@ -16,16 +16,19 @@ void setup() {
 
 void loop() {
   // Sweep the motor speed from minimum to maximum
-  for (int speed = 1000; speed <= 2000; speed += 10) {
-    esc.writeMicroseconds(speed);
-    delay(50);
-  }
+  esc.writeMicroseconds(2000);
+  delay(5000);
+  esc.writeMicroseconds(1900);
+  delay(5000);
+  esc.writeMicroseconds(1800);
+  delay(5000);
+  esc.writeMicroseconds(1700);
+  delay(5000);
+  esc.writeMicroseconds(1600);
+  delay(5000);
+  esc.writeMicroseconds(1500);
+  delay(5000);
 
-  // Sweep the motor speed back from maximum to minimum
-  for (int speed = 2000; speed >= 1000; speed -= 10) {
-    esc.writeMicroseconds(speed);
-    delay(50);
-  }
 }
 
 void armESC() {
