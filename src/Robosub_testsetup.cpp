@@ -39,7 +39,7 @@ uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
 uint8_t ESC_PIN = 3;                // Define ESC control pin
-uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
+const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 
 // Instantiate 3 Bounce object
 Bounce * buttons = new Bounce[NUM_BUTTONS];
