@@ -48,6 +48,7 @@ Servo esc;
 MEASUREMENT data;
 PMEASUREMENT pData;
 
+enum testPrograms program = A; // default to test program A
 
 void setup()
 {
@@ -63,7 +64,6 @@ void setup()
   pinMode(BTNS[2], INPUT);
 
   pData = &data; // point to datastrucutre
-  enum testPrograms program = A; // default to test program A
 
   lcd.init(); // initialize the lcd  screen
   lcd.backlight();
@@ -97,6 +97,7 @@ void loop()
 
   readVernier();
   calcPower(pData);
+  motorTest(program);
   output2Serial(pData);
 
   delay(timeBtwnReadings); // stabilize time between readings (FUTURE maybe timer?)
