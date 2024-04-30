@@ -23,16 +23,16 @@
 
 #include <Arduino.h>
 
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h> // LCD SCREEN
-#include <Servo.h>
-#include <VernierLib.h> //include Vernier functions
+#include <Wire.h>       // Two Wire Interface Bus (I2C)
+#include <LiquidCrystal_I2C.h> // LCD i2c screen
+#include <Servo.h>      // Servo motor library
+#include <VernierLib.h> // Vernier functions 
 #include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 
-// buttons
+/* buttons */
 #define NUM_BUTTONS 3
 
-// MOTOR test parameters
+/* MOTOR test parameters */
 #define CYCLES 500
 #define STEPS 9
 #define MINIMUM_THRUST 1500
@@ -41,9 +41,9 @@
 #define DUR_PROG_B 10000
 #define THRUST_LADDER 50
 
-// measurement
+/* Measurement ADC conf */
 #define VOLTS_ADC_STEP 20 / 1024
-#define AMS_ADC_Step 20 / 1024
+#define AMS_ADC_STEP 20 / 1024
 
 struct measurement // structure containing the measurements
 {
@@ -56,30 +56,28 @@ struct measurement // structure containing the measurements
 typedef struct measurement MEASUREMENT;        // MEASUREMENT  == struct
 typedef MEASUREMENT        *PMEASUREMENT;      // PMEASUREMENT == struct measurement*
 
-// enumator the system states
+// enumator for the system states
 enum class systemState {
-    Setup,
-    State1, // c
-    State2,
-    State3,
-    State4
+    Setup,  // S0 Init setup state
+    State1, // S1
+    State2, // S2
+    State3, // S3
+    State4  // S4
 };
 
-systemState currentState; 
+systemState currentState; // class storing the current system state
 
-enum testPrograms
+enum testPrograms // Motor test programm
 {
-    A,
-    B
-}; // testprograms enumerator
+    A, // Continuos
+    B  // Ladder
+}; 
 
-
-
-void armESC();
-void motorTest(enum testPrograms prog);
-int readVernier();
-float calcPower(PMEASUREMENT p);
-void userInterface(systemState cState);
-void output2Serial(PMEASUREMENT p);
+void initMotor(); // 
+void motorTest(enum testPrograms prog); // 
+int readVernier(); // 
+float calcPower(PMEASUREMENT p); // 
+void userInterface(systemState cState); //  
+void output2Serial(PMEASUREMENT p); // 
 
 #endif
