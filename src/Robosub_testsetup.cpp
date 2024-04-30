@@ -22,39 +22,39 @@
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
 
-const int timeBtwnReadings = 500;
+/* Timing configuration */
+const int timeBtwnReadings = 500; // time between Vernierr
 unsigned long lastReadTime = 0ul;
 
-// LCD properties
-const uint8_t LCD_addr = 0x3f;
-const uint8_t LCD_cols = 16; // number of chars on lcd screen
-const uint8_t LCD_rows = 2;  // number of lines
+/* LCD properties */ 
+const uint8_t LCD_addr = 0x3f;  // i2c-address of LCD screen
+const uint8_t LCD_cols = 16;    // number of chars on lcd screen
+const uint8_t LCD_rows = 2;     // number of lines
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_cols, LCD_rows); // set the LCD address to 0x27 for a LCD_chars chars and LCD_lines line display
 
 VernierLib Vernier; // create an instance of the VernierLib library
 
-// pin definitions
+/* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
 uint8_t ESC_PIN = 3;                // Define ESC control pin
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 
-// Instantiate 3 Bounce object
-Bounce * buttons = new Bounce[NUM_BUTTONS];
+Bounce * buttons = new Bounce[NUM_BUTTONS]; // Initiate 3 Bounce objects
 
-// Create a Servo object
-Servo esc;
+Servo esc; // Create a Servo object
 
-// measurement data
-MEASUREMENT data;
-PMEASUREMENT pData; // pointer to the pData
+MEASUREMENT data; // measurement data
+PMEASUREMENT pData; // pointer to measurement data
 
 enum testPrograms program = A; // default to test program A
 
 void setup()
 {
+  currentState = systemState::Setup;
+
   Serial.begin(9600);           // initialize serial communication at 9600 bits per second:
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
   pinMode(ESC_PIN, OUTPUT);
@@ -99,7 +99,7 @@ void setup()
 
   // MOTOR
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
-  armESC();            // Arm the ESC
+  initMotor();           // Initialize the ESC
 }
 
 void loop()
@@ -127,7 +127,7 @@ void loop()
   Function:
   Parameters:
  */
-void armESC()
+void initMotor()
 {
   esc.writeMicroseconds(1000); // Send a signal to the ESC to arm it
   delay(1000);
@@ -139,6 +139,7 @@ void armESC()
  */
 int readVernier()
 {
+  // currentState = systemState::State1; //
   float sensorReading = Vernier.readSensor();
   delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
 
@@ -156,19 +157,19 @@ float calcPower(PMEASUREMENT p)
   int ampVal = 0;  // Initialize analog value for current
   int voltVal = 0; // Initialize analog value for voltage
 
+  // currentState = systemState::State1; //
+
   // Read analog values from pins
   voltVal = analogRead(VOLT_PIN); // Read voltage value
   ampVal = analogRead(AMP_PIN);   // Read current value
 
   // Convert analog values to actual voltage and current
   p->voltage = (voltVal * VOLTS_ADC_STEP); // Calculate voltage in volts
-  p->current = (ampVal * AMS_ADC_Step);    // Calculate current in amperes
+  p->current = (ampVal * AMS_ADC_STEP);    // Calculate current in amperes
 
-  // Calculate power using the formula: power = voltage * current
-  power = p->voltage * p->current;
+  power = p->voltage * p->current;  // Calculate power using the formula: power = voltage * current
 
-  // Store calculated power in the measurement structure
-  p->power = power;
+  p->power = power;   // Store calculated power in the measurement structure
 
   return power; // Return the calculated power
 }
@@ -192,15 +193,18 @@ Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intota
 */
 void motorTest(enum testPrograms prog)
 {
+
   uint8_t i;
   uint8_t thrust = 50;
+
+  // currentState = systemState::State5; //
+
   switch (prog)
   {
   case A:
-
     /* Testprogramma A continuous
-           Deze functie laat de motor continue harder draaien, duurt intotaal 10 sec.*/
-    for (i = 0; i = CYCLES; i++)
+          Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
+    for (i = 0; i == CYCLES; i++)
     {
         thrust = thrust + i;
         esc.writeMicroseconds(MINIMUM_THRUST + thrust);
@@ -226,6 +230,56 @@ void motorTest(enum testPrograms prog)
 
   default:
     Serial.println("Verkeerd motor test programma doorgegeven");
+    break;
+  }
+}
+
+/*
+  Function: userInterface
+    Handles different system states on the LCD screen
+  Parameters: class enumator with the current State
+ */
+void userInterface(systemState cState)
+{
+  switch (currentState)
+  {
+  case systemState::Setup:
+    // Setup state here
+    lcd.setCursor(0, 0);
+    lcd.print("S: Setup");
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+    break;
+  case systemState::State1:
+    // Calibrating state here
+    lcd.setCursor(0, 0);
+    lcd.print("S: ");
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+    break;
+  case systemState::State2:
+    // State2 here
+    lcd.setCursor(0, 0);
+    lcd.print("S: ");
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+    break;
+  case systemState::State3:
+    // State3 here
+    lcd.setCursor(0, 0);
+    lcd.print("S: ");
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+    break;
+  case systemState::State4:
+    // State4 here
+    lcd.setCursor(0, 0);
+    lcd.print("S: ");
+    lcd.setCursor(0, 1);
+    lcd.print("                ");
+    break;
+
+  default:
     break;
   }
 }
