@@ -27,12 +27,21 @@
 #include <LiquidCrystal_I2C.h> // LCD SCREEN
 #include <Servo.h>
 #include <VernierLib.h> //include Vernier functions
-
-// button debounce lib
+#include <Bounce2.h> // button debounce lib
 // UART serialplotter lib?
+
+// buttons
+#define NUM_BTNS 3 
+
+#define CYCLES 500
+#define STEPS 9
+#define MINIMUM_THRUST 1500
+#define THRUST_LADDER  50
+
 
 void armESC();
 int readVernier();
-void sweepMotor(Servo *pESC);
+void motor_test_ladder(void);
+void motor_test_continuous(void);
 
 #endif
