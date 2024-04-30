@@ -53,7 +53,7 @@ struct measurement // structure containing the measurements
     float power;
 };
 
-typedef struct measurement MEASUREMENT; // MEASUREMENT  == struct
+typedef struct measurement MEASUREMENT;        // MEASUREMENT  == struct
 typedef MEASUREMENT        *PMEASUREMENT;      // PMEASUREMENT == struct measurement*
 
 enum testPrograms
