@@ -9,9 +9,9 @@
  *  Rutger Jansen
  *
  * Hogeschool Utrecht
- * Date: 29-04-2024
+ * Date: 30-04-2024
  *
- * Version: 1.1.0
+ * Version: 1.2.0
  *
  * CHANGELOG:
  *
