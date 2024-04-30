@@ -34,12 +34,15 @@ LiquidCrystal_I2C lcd(LCD_addr, LCD_cols, LCD_rows); // set the LCD address to 0
 
 VernierLib Vernier; // create an instance of the VernierLib library
 
-// PIN definitions
+// pin definitions
 uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
 uint8_t ESC_PIN = 3;                // Define ESC control pin
-uint8_t BTNS[NUM_BTNS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
+uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
+
+// Instantiate 3 Bounce object
+Bounce * buttons = new Bounce[NUM_BUTTONS];
 
 // Create a Servo object
 Servo esc;
@@ -59,48 +62,65 @@ void setup()
   pinMode(VOLT_PIN, INPUT);
   pinMode(AMP_PIN, INPUT);
 
-  pinMode(BTNS[0], INPUT);
-  pinMode(BTNS[1], INPUT);
-  pinMode(BTNS[2], INPUT);
+  pinMode(BUTTON_PINS[0], INPUT_PULLUP);
+  pinMode(BUTTON_PINS[1], INPUT_PULLUP);
+  pinMode(BUTTON_PINS[2], INPUT_PULLUP);
 
-  pData = &data; // point to datastrucutre
+  // After setting up the button, setup debouncer
+  for (int i = 0; i < NUM_BUTTONS; i++) {
+    buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP);       //setup the bounce instance for the current button
+    buttons[i].interval(25);              // debounce interval in ms
+  }
 
-  lcd.init(); // initialize the lcd  screen
-  lcd.backlight();
-  lcd.print("Starting..");
+//   // measuremunt datastructure
+//   pData = &data; // point to datastrucutre
 
-  Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
+//   lcd.init(); // initialize the lcd  screen
+//   lcd.backlight();
+//   lcd.print("Starting..");
 
-#ifdef DEBUG
-  Serial.println(Vernier.sensorName());
-  Serial.print(" ");
-  Serial.println("Readings taken using Ardunio");
-  Serial.println("Data Set");
-  Serial.print("Time"); // long name
-  Serial.print("\t");   // tab character
-  Serial.println(Vernier.sensorName());
-  Serial.print("t");  // short name
-  Serial.print("\t"); // tab character
-  Serial.println(Vernier.shortName());
-  Serial.print("seconds"); // units
-  Serial.print("\t");      // tab character
-  Serial.println(Vernier.sensorUnits());
-#endif
+//   Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
-  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
-  armESC();            // Arm the ESC
+// #ifdef DEBUG
+//   Serial.println(Vernier.sensorName());
+//   Serial.print(" ");
+//   Serial.println("Readings taken using Ardunio");
+//   Serial.println("Data Set");
+//   Serial.print("Time"); // long name
+//   Serial.print("\t");   // tab character
+//   Serial.println(Vernier.sensorName());
+//   Serial.print("t");  // short name
+//   Serial.print("\t"); // tab character
+//   Serial.println(Vernier.shortName());
+//   Serial.print("seconds"); // units
+//   Serial.print("\t");      // tab character
+//   Serial.println(Vernier.sensorUnits());
+// #endif
+
+//   // MOTOR
+//   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
+//   armESC();            // Arm the ESC
 }
 
 void loop()
 {
   lastReadTime = millis();
 
-  readVernier();
-  calcPower(pData);
-  motorTest(program);
-  output2Serial(pData);
+  for (int i = 0; i < NUM_BUTTONS; i++)  {
+    // Update the Bounce instance :
+    buttons[i].update();
+    // If it fell, flag the need to toggle the LED
+    if ( buttons[i].fell() ) {
+      // aBtnPressed = true;
+      digitalWrite(LED_BUILTIN, HIGH);
+    }
+  }
 
-  delay(timeBtwnReadings); // stabilize time between readings (FUTURE maybe timer?)
+  // pData->force = readVernier();
+  // calcPower(pData);
+  // motorTest(program);
+  // output2Serial(pData);
+
 }
 
 /*
@@ -114,12 +134,14 @@ void armESC()
 }
 
 /*
-  Function:
+  Function: Reads varnier sensor and returns value
   Parameters:
  */
 int readVernier()
 {
   float sensorReading = Vernier.readSensor();
+  delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
+
   return sensorReading;
 }
 
@@ -154,28 +176,15 @@ float calcPower(PMEASUREMENT p)
 void output2Serial(PMEASUREMENT p)
 {
   Serial.print(millis() - lastReadTime);
+  Serial.println("force (N), voltage (V), current (mA), power (W)");
+  Serial.println("");
+  Serial.println(p->force);
   Serial.print(",");
-  Serial.println(p->voltage, 2);
+  Serial.print(p->voltage, 2);
   Serial.print(",");
-  Serial.println(p->current, 2);
+  Serial.print(p->current, 2);
   Serial.print(",");
-  Serial.println(p->power, 2);
-}
-
-/*
-Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
-*/
-void motor_test_ladder(void)
-{
-  uint8_t i;
-  uint8_t thrust = 50;
-  for (i = 0; i <= STEPS; i++)
-  {
-    esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-    delay(10000);
-    thrust = thrust + THRUST_LADDER;
-  }
-  esc.writeMicroseconds(MINIMUM_THRUST);
+  Serial.print(p->power, 2);
 }
 
 /*
@@ -191,7 +200,7 @@ void motorTest(enum testPrograms prog)
 
     /* Testprogramma A continuous
            Deze functie laat de motor continue harder draaien, duurt intotaal 10 sec.*/
-    for (i = NULL; i = CYCLES; i++)
+    for (i = 0; i = CYCLES; i++)
     {
         thrust = thrust + i;
         esc.writeMicroseconds(MINIMUM_THRUST + thrust);
@@ -205,7 +214,7 @@ void motorTest(enum testPrograms prog)
     /* Testprogramma B ladder 
        Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
      */
-    for(i = NULL; i <= STEPS; i++)
+    for(i = 0; i <= STEPS; i++)
     {
         esc.writeMicroseconds(MINIMUM_THRUST + thrust);
         delay(DUR_PROG_B);
