@@ -55,6 +55,8 @@ enum testPrograms program = A; // default to test program A
 
 void setup()
 {
+  currentState = systemState::Setup;
+
   Serial.begin(9600);           // initialize serial communication at 9600 bits per second:
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
   pinMode(ESC_PIN, OUTPUT);
@@ -139,6 +141,7 @@ void armESC()
  */
 int readVernier()
 {
+  // currentState = systemState::State1; //
   float sensorReading = Vernier.readSensor();
   delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
 
@@ -152,6 +155,8 @@ int readVernier()
  */
 float calcPower(PMEASUREMENT p)
 {
+  // currentState = systemState::State1; //
+
   float power = 0; // Initialize power variable
   int ampVal = 0;  // Initialize analog value for current
   int voltVal = 0; // Initialize analog value for voltage
@@ -192,6 +197,8 @@ Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intota
 */
 void motorTest(enum testPrograms prog)
 {
+  // currentState = systemState::State5; //
+  
   uint8_t i;
   uint8_t thrust = 50;
   switch (prog)
@@ -228,4 +235,35 @@ void motorTest(enum testPrograms prog)
     Serial.println("Verkeerd motor test programma doorgegeven");
     break;
   }
+}
+
+/*
+  Function: userInterface
+    Function to handle different system states
+  Parameters: class enumator with the current State
+ */
+void userInterface(systemState cState){
+    switch (currentState) {
+        case systemState::Setup:
+            // Setup state here
+            lcd.setCursor(0,0);
+            lcd.print("in Setup");
+            lcd.setCursor(0,1);
+            lcd.print("                ");
+            break;
+        case systemState::State1:
+            // Calibrating state here
+            break;
+        case systemState::State2:
+            // State2 here
+            break;
+        case systemState::State3:
+            // State3 here
+            break;
+        case systemState::State4:
+            // State4 here
+            break;
+        default:
+            break;
+    }
 }

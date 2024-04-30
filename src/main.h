@@ -56,16 +56,30 @@ struct measurement // structure containing the measurements
 typedef struct measurement MEASUREMENT;        // MEASUREMENT  == struct
 typedef MEASUREMENT        *PMEASUREMENT;      // PMEASUREMENT == struct measurement*
 
+// enumator the system states
+enum class systemState {
+    Setup,
+    State1, // c
+    State2,
+    State3,
+    State4
+};
+
+systemState currentState; 
+
 enum testPrograms
 {
     A,
     B
 }; // testprograms enumerator
 
+
+
 void armESC();
+void motorTest(enum testPrograms prog);
 int readVernier();
 float calcPower(PMEASUREMENT p);
-void motorTest(enum testPrograms prog);
+void userInterface(systemState cState);
 void output2Serial(PMEASUREMENT p);
 
 #endif
