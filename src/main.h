@@ -27,11 +27,10 @@
 #include <LiquidCrystal_I2C.h> // LCD SCREEN
 #include <Servo.h>
 #include <VernierLib.h> //include Vernier functions
-#include <Bounce2.h>    // button debounce lib
-// UART serialplotter lib?
+#include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 
 // buttons
-#define NUM_BTNS 3
+#define NUM_BUTTONS 3
 
 // MOTOR test parameters
 #define CYCLES 500
@@ -51,6 +50,7 @@ struct measurement // structure containing the measurements
     float voltage;
     float current;
     float power;
+    int force;
 };
 
 typedef struct measurement MEASUREMENT;        // MEASUREMENT  == struct
