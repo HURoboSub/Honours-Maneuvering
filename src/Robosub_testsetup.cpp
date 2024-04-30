@@ -49,7 +49,7 @@ Servo esc;
 
 // measurement data
 MEASUREMENT data;
-PMEASUREMENT pData;
+PMEASUREMENT pData; // pointer to the pData
 
 enum testPrograms program = A; // default to test program A
 
@@ -72,34 +72,34 @@ void setup()
     buttons[i].interval(25);              // debounce interval in ms
   }
 
-//   // measuremunt datastructure
-//   pData = &data; // point to datastrucutre
+  // measuremunt datastructure
+  pData = &data; // point to datastrucutre
 
-//   lcd.init(); // initialize the lcd  screen
-//   lcd.backlight();
-//   lcd.print("Starting..");
+  lcd.init(); // initialize the lcd  screen
+  lcd.backlight();
+  lcd.print("Starting..");
 
-//   Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
+  Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
-// #ifdef DEBUG
-//   Serial.println(Vernier.sensorName());
-//   Serial.print(" ");
-//   Serial.println("Readings taken using Ardunio");
-//   Serial.println("Data Set");
-//   Serial.print("Time"); // long name
-//   Serial.print("\t");   // tab character
-//   Serial.println(Vernier.sensorName());
-//   Serial.print("t");  // short name
-//   Serial.print("\t"); // tab character
-//   Serial.println(Vernier.shortName());
-//   Serial.print("seconds"); // units
-//   Serial.print("\t");      // tab character
-//   Serial.println(Vernier.sensorUnits());
-// #endif
+#ifdef DEBUG
+  Serial.println(Vernier.sensorName());
+  Serial.print(" ");
+  Serial.println("Readings taken using Ardunio");
+  Serial.println("Data Set");
+  Serial.print("Time"); // long name
+  Serial.print("\t");   // tab character
+  Serial.println(Vernier.sensorName());
+  Serial.print("t");  // short name
+  Serial.print("\t"); // tab character
+  Serial.println(Vernier.shortName());
+  Serial.print("seconds"); // units
+  Serial.print("\t");      // tab character
+  Serial.println(Vernier.sensorUnits());
+#endif
 
-//   // MOTOR
-//   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
-//   armESC();            // Arm the ESC
+  // MOTOR
+  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
+  armESC();            // Arm the ESC
 }
 
 void loop()
@@ -116,10 +116,10 @@ void loop()
     }
   }
 
-  // pData->force = readVernier();
-  // calcPower(pData);
-  // motorTest(program);
-  // output2Serial(pData);
+  pData->force = readVernier();
+  calcPower(pData);
+  motorTest(program);
+  output2Serial(pData);
 
 }
 
