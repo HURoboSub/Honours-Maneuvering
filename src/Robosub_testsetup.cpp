@@ -55,7 +55,7 @@ enum testPrograms testProgram = A; // default to test program A
 
 void setup()
 {
-  currentState = systemState::Setup;
+  currentState = systemState::Setup; // put system to Setup state
 
   Serial.begin(9600);           // initialize serial communication at 9600 bits per second:
   Serial.println("Program starting..");
@@ -82,7 +82,7 @@ void setup()
 
   lcd.init(); // initialize the lcd  screen
   lcd.backlight();
-  lcd.print("Starting..");
+  lcd.print("Starting...");
   
   Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
