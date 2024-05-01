@@ -29,6 +29,7 @@
 - [ ] test servo program 0 - 100 %
 - [ ] UART / serialplotter output
 - [ ] write analogRead calibration mode for pins A0 voltage & A1 Current
+- [ ] EHNANCEMENT: MEM opt. use dynamic char pointer for string storage Serialprint(const char *s);
 
 ## Sharepoint
 <a href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx" target="_blank"><img src="images/RoboSub_logo.png" alt="logo RoboSub"  width="100"/> <br> RoboSub (EXT) </a>
