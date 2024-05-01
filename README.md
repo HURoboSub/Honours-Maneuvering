@@ -22,15 +22,13 @@
 5. Make a branch of the main per new SW function
 
 ## To-Do
-- [X] make README 
-- [ ] pin definition
-- [X] write function read Vernier sensor
-- [ ] test reading Vernier force sensor
+- [ ] test readVernier force sensor
 - [X] write function LCD screen
-- [ ] test LCD screen
-- [ ] write function servo program
+- [X] test LCD screen NOTE: I2C_address
+- [X] write function servo program
 - [ ] test servo program 0 - 100 %
 - [ ] UART / serialplotter output
+- [ ] write analogRead calibration mode for pins A0 voltage & A1 Current
 
 ## Sharepoint
 <a href="https://hogeschoolutrecht.sharepoint.com/sites/ext_Onderzoek_robosub/Gedeelde%20documenten/Forms/AllItems.aspx" target="_blank"><img src="images/RoboSub_logo.png" alt="logo RoboSub"  width="100"/> <br> RoboSub (EXT) </a>
