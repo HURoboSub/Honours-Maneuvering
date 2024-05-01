@@ -31,7 +31,7 @@ const uint8_t LCD_addr = 0x3f;  // i2c-address of LCD screen
 const uint8_t LCD_cols = 16;    // number of chars on lcd screen
 const uint8_t LCD_rows = 2;     // number of lines
 
-LiquidCrystal_I2C lcd(LCD_addr, LCD_cols, LCD_rows); // set the LCD address to 0x27 for a LCD_chars chars and LCD_lines line display
+LiquidCrystal_I2C lcd(LCD_addr, LCD_cols, LCD_rows); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
 VernierLib Vernier; // create an instance of the VernierLib library
 
@@ -40,22 +40,26 @@ uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
 uint8_t ESC_PIN = 3;                // Define ESC control pin
-const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 
+const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 Bounce * buttons = new Bounce[NUM_BUTTONS]; // Initiate 3 Bounce objects
+bool buttonStates[NUM_BUTTONS] = {0}; // bool array storing the buttonStates
+bool* pButtonStates = &buttonStates[0]; // define pointer, pointing to zeroth element of buttonStates array
 
 Servo esc; // Create a Servo object
 
 MEASUREMENT data; // measurement data
 PMEASUREMENT pData; // pointer to measurement data
 
-enum testPrograms program = A; // default to test program A
+enum testPrograms testProgram = A; // default to test program A
 
 void setup()
 {
   currentState = systemState::Setup;
 
   Serial.begin(9600);           // initialize serial communication at 9600 bits per second:
+  Serial.println("Program starting..");
+
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
   pinMode(ESC_PIN, OUTPUT);
 
@@ -74,11 +78,12 @@ void setup()
 
   // measuremunt datastructure
   pData = &data; // point to datastrucutre
+  output2Serial(pData); // output header row to serial
 
   lcd.init(); // initialize the lcd  screen
   lcd.backlight();
   lcd.print("Starting..");
-
+  
   Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
 #ifdef DEBUG
@@ -97,8 +102,8 @@ void setup()
   Serial.println(Vernier.sensorUnits());
 #endif
 
-  // MOTOR
-  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
+  // motor
+  esc.attach(ESC_PIN);  // Attach the ESC to the specified pin
   initMotor();           // Initialize the ESC
 }
 
@@ -106,19 +111,11 @@ void loop()
 {
   lastReadTime = millis();
 
-  for (int i = 0; i < NUM_BUTTONS; i++)  {
-    // Update the Bounce instance :
-    buttons[i].update();
-    // If it fell, flag the need to toggle the LED
-    if ( buttons[i].fell() ) {
-      // aBtnPressed = true;
-      digitalWrite(LED_BUILTIN, HIGH);
-    }
-  }
+  handleButtons(pButtonStates); 
 
   pData->force = readVernier();
   calcPower(pData);
-  motorTest(program);
+  motorTest(testProgram);
   output2Serial(pData);
 
 }
@@ -131,6 +128,27 @@ void initMotor()
 {
   esc.writeMicroseconds(1000); // Send a signal to the ESC to arm it
   delay(1000);
+}
+
+/*
+  Function: handle button presses
+  Parameters: pS, pointer to i'th index of buttonstatearray
+ */
+void handleButtons(bool *pState)
+{
+  // for the NUM_BUTTONS increase i and state pointer
+  for (int i = 0; i < NUM_BUTTONS; pState++, i++)
+  {
+    // Update the Bounce instance :
+    buttons[i].update();
+    // If it fell, flag the need to toggle the LED
+    if (buttons[i].fell())
+    {
+      // aBtnPressed = true;
+      *pState = buttons[i].fell(); // change left value of this button state
+      digitalWrite(LED_BUILTIN, HIGH);
+    }
+  }
 }
 
 /*
@@ -149,7 +167,7 @@ int readVernier()
 /*
   Function: calcPower
   Calculate power based on voltage and current measurements
-  Parameters:
+  Parameters: PMEASUREMENT p, pointer to measurement data structure
  */
 float calcPower(PMEASUREMENT p)
 {
@@ -176,16 +194,22 @@ float calcPower(PMEASUREMENT p)
 
 void output2Serial(PMEASUREMENT p)
 {
-  Serial.print(millis() - lastReadTime);
-  Serial.println("force (N), voltage (V), current (mA), power (W)");
-  Serial.println("");
-  Serial.println(p->force);
-  Serial.print(",");
-  Serial.print(p->voltage, 2);
-  Serial.print(",");
-  Serial.print(p->current, 2);
-  Serial.print(",");
-  Serial.print(p->power, 2);
+  if (currentState == systemState::Setup) // if system is in setup
+  {
+    Serial.println("time (ms), force (N), voltage (V), current (mA), power (W)"); // print header row
+  }
+  else // print data
+  {
+    Serial.print(millis() - lastReadTime);
+    Serial.print(",");
+    Serial.println(p->force);
+    Serial.print(",");
+    Serial.print(p->voltage, 2);
+    Serial.print(",");
+    Serial.print(p->current, 2);
+    Serial.print(",");
+    Serial.print(p->power, 2);
+  }
 }
 
 /*

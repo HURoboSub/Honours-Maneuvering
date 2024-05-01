@@ -63,9 +63,7 @@ enum class systemState {
     State2, // S2
     State3, // S3
     State4  // S4
-};
-
-systemState currentState; // class storing the current system state
+} currentState; // class storing the current system state
 
 enum testPrograms // Motor test programm
 {
@@ -75,6 +73,7 @@ enum testPrograms // Motor test programm
 
 void initMotor(); // 
 void motorTest(enum testPrograms prog); // 
+void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 int readVernier(); // 
 float calcPower(PMEASUREMENT p); // 
 void userInterface(systemState cState); //  
