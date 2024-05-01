@@ -49,7 +49,7 @@ bool* pButtonStates = &buttonStates[0]; // define pointer, pointing to zeroth el
 Servo esc; // Create a Servo object
 
 MEASUREMENT data; // measurement data
-PMEASUREMENT pData; // pointer to measurement data
+PMEASUREMENT pData = &data; // point to datastrucutre
 
 enum testPrograms testProgram = A; // default to test program A
 
@@ -77,7 +77,6 @@ void setup()
   }
 
   // measuremunt datastructure
-  pData = &data; // point to datastrucutre
   output2Serial(pData); // output header row to serial
 
   lcd.init(); // initialize the lcd  screen
