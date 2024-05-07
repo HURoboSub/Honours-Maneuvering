@@ -59,10 +59,10 @@ typedef MEASUREMENT        *PMEASUREMENT;      // PMEASUREMENT == struct measure
 // enumator for the system states
 enum class systemState {
     Setup,  // S0 Init setup state
-    State1, // S1
-    State2, // S2
-    State3, // S3
-    State4  // S4
+    Calibrating, // S1
+    Reading, // S2
+    Testing, // S3
+    Output   // S4
 } currentState; // class storing the current system state
 
 enum testPrograms // Motor test programm

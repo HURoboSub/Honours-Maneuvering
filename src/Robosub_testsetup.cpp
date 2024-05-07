@@ -6,12 +6,12 @@
  *  Jannick Bloemendal
  *  Niels Redegeld
  *  Thijs Vader
- *  Rutger Jansen
+ *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 30-04-2024
+ * Date: 07-05-2024
  *
- * Version: 1.2.0
+ * Version: 1.4.0
  *
  * CHANGELOG:
  *
@@ -109,7 +109,6 @@ void setup()
 void loop()
 {
   lastReadTime = millis();
-
   handleButtons(pButtonStates); 
 
   pData->force = readVernier();
@@ -135,6 +134,8 @@ void initMotor()
  */
 void handleButtons(bool *pState)
 {
+  currentState = systemState::Reading; // put system to Reading state
+
   // for the NUM_BUTTONS increase i and state pointer
   for (int i = 0; i < NUM_BUTTONS; pState++, i++)
   {
@@ -156,6 +157,7 @@ void handleButtons(bool *pState)
  */
 int readVernier()
 {
+  currentState = systemState::Reading; // put system to Reading state
   // currentState = systemState::State1; //
   float sensorReading = Vernier.readSensor();
   delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
@@ -174,7 +176,7 @@ float calcPower(PMEASUREMENT p)
   int ampVal = 0;  // Initialize analog value for current
   int voltVal = 0; // Initialize analog value for voltage
 
-  // currentState = systemState::State1; //
+  currentState = systemState::Reading; // put system to Reading state
 
   // Read analog values from pins
   voltVal = analogRead(VOLT_PIN); // Read voltage value
@@ -193,12 +195,16 @@ float calcPower(PMEASUREMENT p)
 
 void output2Serial(PMEASUREMENT p)
 {
-  if (currentState == systemState::Setup) // if system is in setup
+  if (currentState == systemState::Setup) // if system is in setup mode
   {
+    currentState = systemState::Output; // put system to Output state
+
     Serial.println("time (ms), force (N), voltage (V), current (mA), power (W)"); // print header row
   }
   else // print data
   {
+    currentState = systemState::Output; // put system to Output state
+
     Serial.print(millis() - lastReadTime);
     Serial.print(",");
     Serial.println(p->force);
@@ -220,7 +226,7 @@ void motorTest(enum testPrograms prog)
   uint8_t i;
   uint8_t thrust = 50;
 
-  // currentState = systemState::State5; //
+  currentState = systemState::Testing; // put system to Testing state
 
   switch (prog)
   {
@@ -252,7 +258,9 @@ void motorTest(enum testPrograms prog)
     break;
 
   default:
-    Serial.println("Verkeerd motor test programma doorgegeven");
+    #ifdef DEBUG
+      Serial.println("Verkeerd motor test programma doorgegeven");
+    #endif
     break;
   }
 }
@@ -273,31 +281,31 @@ void userInterface(systemState cState)
     lcd.setCursor(0, 1);
     lcd.print("                ");
     break;
-  case systemState::State1:
+  case systemState::Calibrating:
     // Calibrating state here
     lcd.setCursor(0, 0);
-    lcd.print("S: ");
+    lcd.print("S: Calibrating");
     lcd.setCursor(0, 1);
     lcd.print("                ");
     break;
-  case systemState::State2:
-    // State2 here
+  case systemState::Reading:
+    // S2 here
     lcd.setCursor(0, 0);
-    lcd.print("S: ");
+    lcd.print("S: Reading");
     lcd.setCursor(0, 1);
     lcd.print("                ");
     break;
-  case systemState::State3:
-    // State3 here
+  case systemState::Testing:
+    // S3 here
     lcd.setCursor(0, 0);
-    lcd.print("S: ");
+    lcd.print("S: Testing");
     lcd.setCursor(0, 1);
     lcd.print("                ");
     break;
-  case systemState::State4:
-    // State4 here
+  case systemState::Output:
+    // S4 here
     lcd.setCursor(0, 0);
-    lcd.print("S: ");
+    lcd.print("S: Output");
     lcd.setCursor(0, 1);
     lcd.print("                ");
     break;
