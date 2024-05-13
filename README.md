@@ -22,6 +22,7 @@
 5. Make a branch of the main per new SW function
 
 ## To-Do
+- [ ] Vernier digitalID https://github.com/YukiSakuma/arduino/blob/YukiSakuma-patch-1/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
 - [ ] test readVernier force sensor
 - [X] write function LCD screen
 - [X] test LCD screen NOTE: I2C_address
