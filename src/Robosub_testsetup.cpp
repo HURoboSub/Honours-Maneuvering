@@ -33,6 +33,9 @@ const uint8_t LCD_rows = 2;     // number of lines
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_cols, LCD_rows); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
+char const *textzero = "                "; // const pointer to a char array row zero of LCD
+char const *textone  = "                "; // textrow one of LCD
+
 VernierLib Vernier; // create an instance of the VernierLib library
 
 /* PIN DEFINTIONS */
@@ -266,51 +269,70 @@ void motorTest(enum testPrograms prog)
 }
 
 /*
+  Function: LCD_rows
+    print strings on LCD screen
+ */
+
+void LCD_show(const char *row0, const char *row1)
+{
+  unsigned char k; // row index
+
+  lcd.clear();
+
+  for (k = 0; k < LCD_rows; k++)
+  {
+    lcd.setCursor(0, k);
+
+    // if current row is line 0 print text for row 0
+    if (k == 0)
+      lcd.print(row0);
+    else // print text for row 1
+      lcd.print(row1);
+  }
+}
+
+/*
   Function: userInterface
     Handles different system states on the LCD screen
   Parameters: class enumator with the current State
  */
+
 void userInterface(systemState cState)
 {
   switch (currentState)
   {
   case systemState::Setup:
     // Setup state here
-    lcd.setCursor(0, 0);
-    lcd.print("S: Setup");
-    lcd.setCursor(0, 1);
-    lcd.print("                ");
+    textzero = "S: Setup       ";
+    textone  = "               ";
     break;
   case systemState::Calibrating:
     // Calibrating state here
-    lcd.setCursor(0, 0);
-    lcd.print("S: Calibrating");
-    lcd.setCursor(0, 1);
-    lcd.print("                ");
+    textzero = "S: Calibrating ";
+    textone  = "               ";
     break;
   case systemState::Reading:
     // S2 here
-    lcd.setCursor(0, 0);
-    lcd.print("S: Reading");
-    lcd.setCursor(0, 1);
-    lcd.print("                ");
+    textzero = "S: Reading     ";
+    textone  = "               ";
     break;
   case systemState::Testing:
-    // S3 here
-    lcd.setCursor(0, 0);
-    lcd.print("S: Testing");
-    lcd.setCursor(0, 1);
-    lcd.print("                ");
+    // S3 Testing here
+    textzero = "S: Testing     ";
+    textone  = "               ";
     break;
   case systemState::Output:
-    // S4 here
-    lcd.setCursor(0, 0);
-    lcd.print("S: Output");
-    lcd.setCursor(0, 1);
-    lcd.print("                ");
+    // S4 Output here
+    textzero = "S: Output      ";
+    textone  = "               ";
     break;
 
   default:
+    textzero = "S: Error       ";
+    textone  = "No state passed";
     break;
   }
+
+  LCD_show(textzero, textone); // show text on lcd screen
+
 }
