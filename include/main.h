@@ -53,16 +53,16 @@ struct measurement // structure containing the measurements
     int force;
 };
 
-typedef struct measurement MEASUREMENT;        // MEASUREMENT  == struct
-typedef MEASUREMENT        *PMEASUREMENT;      // PMEASUREMENT == struct measurement*
+typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
+typedef MEASUREMENT       *PMEASUREMENT;    // PMEASUREMENT == struct measurement*
 
 // enumator for the system states
 enum class systemState {
-    Setup,  // S0 Init setup state
+    Setup,       // S0 Init setup state
     Calibrating, // S1
-    Reading, // S2
-    Testing, // S3
-    Output   // S4
+    Reading,     // S2
+    Testing,     // S3
+    Output       // S4
 } currentState; // class storing the current system state
 
 enum testPrograms // Motor test programm
@@ -71,12 +71,12 @@ enum testPrograms // Motor test programm
     B  // Ladder
 }; 
 
-void initMotor(); // 
-void motorTest(enum testPrograms prog); // 
+void initMotor(); // Initialise motor
+void motorTest(enum testPrograms prog); // Run testprogram on motor
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
-int readVernier(); // 
-float calcPower(PMEASUREMENT p); // 
-void userInterface(systemState cState); //  
-void output2Serial(PMEASUREMENT p); // 
+int readVernier(); // read Vernier input and return its value
+float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
+void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
+void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 
 #endif

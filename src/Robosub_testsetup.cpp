@@ -158,7 +158,7 @@ void handleButtons(bool *pState)
 int readVernier()
 {
   currentState = systemState::Reading; // put system to Reading state
-  // currentState = systemState::State1; //
+
   float sensorReading = Vernier.readSensor();
   delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
 
