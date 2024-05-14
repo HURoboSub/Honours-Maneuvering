@@ -9,9 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 07-05-2024
+ * Date: 14-05-2024
  *
- * Version: 1.4.0
+ * Version: 1.5.0
  *
  * CHANGELOG:
  *
@@ -39,7 +39,7 @@ VernierLib Vernier; // create an instance of the VernierLib library
 uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
-uint8_t ESC_PIN = 3;                // Define ESC control pin
+uint8_t ESC_PIN = 3;   // Define ESC control pin
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 Bounce * buttons = new Bounce[NUM_BUTTONS]; // Initiate 3 Bounce objects
@@ -57,7 +57,7 @@ void setup()
 {
   currentState = systemState::Setup; // put system to Setup state
 
-  Serial.begin(9600);           // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600);   // initialize serial communication at 9600 bits per second:
   Serial.println("Program starting..");
 
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
@@ -103,7 +103,7 @@ void setup()
 
   // motor
   esc.attach(ESC_PIN);  // Attach the ESC to the specified pin
-  initMotor();           // Initialize the ESC
+  initMotor();          // Initialize the ESC
 }
 
 void loop()
