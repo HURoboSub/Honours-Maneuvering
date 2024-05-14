@@ -29,6 +29,9 @@
 #include <VernierLib.h> // Vernier functions 
 #include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 
+/* for the test setup dirty define the pin which the analog read is performed */
+#define DIRTY_ANALOG_READ_PIN A3
+
 // /* buttons */
 // #define NUM_BUTTONS 3
 

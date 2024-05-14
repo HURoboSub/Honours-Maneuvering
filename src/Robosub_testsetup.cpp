@@ -49,7 +49,7 @@ void setup()
 // Read sensor measurments continuously in the 'loop()'
 void loop()
 {
-  float sensorReading = analogRead(A3);
+  float sensorReading = analogRead(DIRTY_ANALOG_READ_PIN);
   #ifdef DEBUG 
     Serial.println(sensorReading);
   #endif
