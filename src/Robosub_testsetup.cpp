@@ -72,8 +72,8 @@ void setup()
 
   // After setting up the button, setup debouncer
   for (int i = 0; i < NUM_BUTTONS; i++) {
-    buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP);       //setup the bounce instance for the current button
-    buttons[i].interval(25);              // debounce interval in ms
+    buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP); //setup the bounce instance for the current button
+    buttons[i].interval(25);                           // debounce interval in ms
   }
 
   // measuremunt datastructure
@@ -82,7 +82,7 @@ void setup()
   lcd.init(); // initialize the lcd  screen
   lcd.backlight();
   lcd.print("Starting...");
-  
+  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
   Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
 #ifdef DEBUG
