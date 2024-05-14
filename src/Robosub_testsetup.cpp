@@ -271,6 +271,7 @@ void motorTest(enum testPrograms prog)
 /*
   Function: LCD_rows
     print strings on LCD screen
+  Parameters: that's what's to be printed on row0 and row1 
  */
 
 void LCD_show(const char *row0, const char *row1)
@@ -294,7 +295,7 @@ void LCD_show(const char *row0, const char *row1)
 /*
   Function: userInterface
     Handles different system states on the LCD screen
-  Parameters: class enumator with the current State
+    Parameters: class enumator with the current State
  */
 
 void userInterface(systemState cState)
