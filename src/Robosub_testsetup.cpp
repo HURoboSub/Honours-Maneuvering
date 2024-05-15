@@ -39,7 +39,13 @@ VernierLib Vernier; // create an instance of the VernierLib library
 uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
-uint8_t ESC_PIN = 3;                // Define ESC control pin
+uint8_t ESC_PIN = 11;                // Define ESC control pin
+
+TimerEvent timer_motor_test_a;
+TimerEvent timer_motor_test_b;
+
+uint8_t timer_expired = 0;
+bool continues_motor_test = true;
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 Bounce * buttons = new Bounce[NUM_BUTTONS]; // Initiate 3 Bounce objects
@@ -51,7 +57,7 @@ Servo esc; // Create a Servo object
 MEASUREMENT data; // measurement data
 PMEASUREMENT pData = &data; // point to datastrucutre
 
-enum testPrograms testProgram = A; // default to test program A
+enum testPrograms testProgram = B; // default to test program A
 
 void setup()
 {
@@ -75,6 +81,7 @@ void setup()
     buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP); //setup the bounce instance for the current button
     buttons[i].interval(25);                           // debounce interval in ms
   }
+
 
   // measuremunt datastructure
   output2Serial(pData); // output header row to serial
@@ -226,20 +233,27 @@ void motorTest(enum testPrograms prog)
   uint8_t i;
   uint8_t thrust = 50;
 
-  currentState = systemState::Testing; // put system to Testing state
+  currentState = systemState::Testing; // put system to Testing 
+
+  timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler);
+  timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);
 
   switch (prog)
   {
   case A:
     /* Testprogramma A continuous
           Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    for (i = 0; i == CYCLES; i++)
+    continues_motor_test = true;
+    while(continues_motor_test)
     {
-        thrust = thrust + i;
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-        delay(DUR_PROG_A);
+        timer_motor_test_a.update();
+        // Put the vernier sensor read func here (can be another timer if needed)
+        if(timer_expired >= CYCLES)
+        {
+          continues_motor_test = false;
+          timer_expired = 0;
+        }
     }
-    esc.writeMicroseconds(MINIMUM_THRUST);
 
     break;
 
@@ -247,14 +261,17 @@ void motorTest(enum testPrograms prog)
     /* Testprogramma B ladder 
        Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
      */
-    for(i = 0; i <= STEPS; i++)
+    continues_motor_test = true;
+    while(continues_motor_test)
     {
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-        delay(DUR_PROG_B);
-        thrust = thrust + THRUST_LADDER;
+        timer_motor_test_b.update();
+        // Put the vernier sensor read func here (can be another timer if needed)
+        if(timer_expired >= STEPS)
+        {
+          continues_motor_test = false;
+          timer_expired = 0;
+        }
     }
-    esc.writeMicroseconds(MINIMUM_THRUST);
-
     break;
 
   default:
@@ -263,6 +280,32 @@ void motorTest(enum testPrograms prog)
     #endif
     break;
   }
+}
+
+void prog_a_timer_handler(void)
+{
+  uint8_t i;
+  uint8_t thrust = 50;
+  for (i = 0; i == CYCLES; i++)
+    {
+        thrust = thrust + i;
+        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
+        delay(DUR_PROG_A);
+    }
+    esc.writeMicroseconds(MINIMUM_THRUST);
+}
+
+void prog_b_timer_handler(void)
+{
+  uint8_t i;
+  uint8_t thrust = 50;
+  for(i = 0; i <= STEPS; i++)
+    {
+        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
+        delay(DUR_PROG_B);
+        thrust = thrust + THRUST_LADDER;
+    }
+    esc.writeMicroseconds(MINIMUM_THRUST);
 }
 
 /*

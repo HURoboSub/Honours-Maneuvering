@@ -28,6 +28,7 @@
 #include <Servo.h>      // Servo motor library
 #include <VernierLib.h> // Vernier functions 
 #include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
+#include <TimerEvent.h>
 
 /* buttons */
 #define NUM_BUTTONS 3
@@ -78,5 +79,7 @@ int readVernier(); // read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
 void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
+void prog_a_timer_handler(void);
+void prog_b_timer_handler(void);
 
 #endif
