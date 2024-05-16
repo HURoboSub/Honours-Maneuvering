@@ -26,12 +26,7 @@
 const int timeBtwnReadings = 500; // time between Vernierr
 unsigned long lastReadTime = 0ul;
 
-/* LCD properties */ 
-const uint8_t LCD_addr = 0x3f;  // i2c-address of LCD screen
-const uint8_t LCD_cols = 16;    // number of chars on lcd screen
-const uint8_t LCD_rows = 2;     // number of lines
-
-LiquidCrystal_I2C lcd(LCD_addr, LCD_cols, LCD_rows); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
+LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
 char const *textzero = "                "; // const pointer to a char array row zero of LCD
 char const *textone  = "                "; // textrow one of LCD
@@ -276,16 +271,16 @@ void motorTest(enum testPrograms prog)
 
 void LCD_show(const char *row0, const char *row1)
 {
-  unsigned char k; // row index
+  unsigned char y; // row index
 
   lcd.clear();
 
-  for (k = 0; k < LCD_rows; k++)
+  for (y = 0; y < LCD_ROWS; y++)
   {
-    lcd.setCursor(0, k);
+    lcd.setCursor(0, y);
 
     // if current row is line 0 print text for row 0
-    if (k == 0)
+    if (y == 0)
       lcd.print(row0);
     else // print text for row 1
       lcd.print(row1);

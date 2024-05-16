@@ -45,6 +45,11 @@
 #define VOLTS_ADC_STEP 20 / 1024
 #define AMS_ADC_STEP 20 / 1024
 
+/* LCD properties */ 
+#define LCD_addr 0x3f  // i2c-address of LCD screen
+#define LCD_COLS 16    // number of chars on lcd screen
+#define LCD_ROWS 2    // number of lines
+
 struct measurement // structure containing the measurements
 {
     float voltage;

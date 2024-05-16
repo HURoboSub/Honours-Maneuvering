@@ -2,6 +2,14 @@
     "folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../../../../Documents/Programmeren_kloten/C programmeren"
 		}
-	]
+	],
+	"settings": {
+		"files.associations": {
+			"stdlib.h": "c"
+		}
+	}
 }
