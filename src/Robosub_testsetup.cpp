@@ -28,8 +28,8 @@ unsigned long lastReadTime = 0ul;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
-char const *textzero = "                "; // const pointer to a char array row zero of LCD
-char const *textone  = "                "; // textrow one of LCD
+char const *rowOneLCD = "              ";   // const pointer to a char array containing linezero of LCD
+char const *rowTwoLCD = "                "; // textrow one of LCD
 
 VernierLib Vernier; // create an instance of the VernierLib library
 
@@ -37,16 +37,16 @@ VernierLib Vernier; // create an instance of the VernierLib library
 uint8_t VOLT_PIN = A0; // Define Voltage control
 uint8_t AMP_PIN = A1;  // Define Amperage control
 
-uint8_t ESC_PIN = 3;   // Define ESC control pin
+uint8_t ESC_PIN = 3; // Define ESC control pin
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
-Bounce * buttons = new Bounce[NUM_BUTTONS]; // Initiate 3 Bounce objects
-bool buttonStates[NUM_BUTTONS] = {false}; // bool array storing the buttonStates
-bool* pButtonStates = &buttonStates[0]; // define pointer, pointing to zeroth element of buttonStates array
+Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
+bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
+bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
 
 Servo esc; // Create a Servo object
 
-MEASUREMENT data; // measurement data
+MEASUREMENT data;           // measurement data
 PMEASUREMENT pData = &data; // point to datastrucutre
 
 enum testPrograms testProgram = A; // default to test program A
@@ -55,8 +55,12 @@ void setup()
 {
   currentState = systemState::Setup; // put system to Setup state
 
-  Serial.begin(9600);   // initialize serial communication at 9600 bits per second:
+  Serial.begin(9600); // initialize serial communication at 9600 bits per second:
   Serial.println("Program starting..");
+
+  lcd.init(); // initialize the lcd  screen
+  lcd.backlight();
+  userInterface(currentState);// diplay setup state on LCD
 
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
   pinMode(ESC_PIN, OUTPUT);
@@ -69,17 +73,15 @@ void setup()
   pinMode(BUTTON_PINS[2], INPUT_PULLUP);
 
   // After setting up the button, setup debouncer
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP); //setup the bounce instance for the current button
-    buttons[i].interval(25);                           // debounce interval in ms
+  for (int i = 0; i < NUM_BUTTONS; i++)
+  {
+    buttons[i].attach(BUTTON_PINS[i], INPUT_PULLUP); // setup the bounce instance for the current button
+    buttons[i].interval(25);                         // debounce interval in ms
   }
 
   // measuremunt datastructure
   output2Serial(pData); // output header row to serial
 
-  lcd.init(); // initialize the lcd  screen
-  lcd.backlight();
-  lcd.print("Starting...");
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
   Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
@@ -100,20 +102,19 @@ void setup()
 #endif
 
   // motor
-  esc.attach(ESC_PIN);  // Attach the ESC to the specified pin
-  initMotor();          // Initialize the ESC
+  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
+  initMotor();         // Initialize the ESC
 }
 
 void loop()
 {
   lastReadTime = millis();
-  handleButtons(pButtonStates); 
+  handleButtons(pButtonStates);
 
   pData->force = readVernier();
   calcPower(pData);
   motorTest(testProgram);
   output2Serial(pData);
-
 }
 
 /*
@@ -184,9 +185,9 @@ float calcPower(PMEASUREMENT p)
   p->voltage = (voltVal * VOLTS_ADC_STEP); // Calculate voltage in volts
   p->current = (ampVal * AMS_ADC_STEP);    // Calculate current in amperes
 
-  power = p->voltage * p->current;  // Calculate power using the formula: power = voltage * current
+  power = p->voltage * p->current; // Calculate power using the formula: power = voltage * current
 
-  p->power = power;   // Store calculated power in the measurement structure
+  p->power = power; // Store calculated power in the measurement structure
 
   return power; // Return the calculated power
 }
@@ -233,32 +234,32 @@ void motorTest(enum testPrograms prog)
           Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     for (i = 0; i == CYCLES; i++)
     {
-        thrust = thrust + i;
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-        delay(DUR_PROG_A);
+      thrust = thrust + i;
+      esc.writeMicroseconds(MINIMUM_THRUST + thrust);
+      delay(DUR_PROG_A);
     }
     esc.writeMicroseconds(MINIMUM_THRUST);
 
     break;
 
   case B:
-    /* Testprogramma B ladder 
-       Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
+    /* Testprogramma B ladder
+       Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
      */
-    for(i = 0; i <= STEPS; i++)
+    for (i = 0; i <= STEPS; i++)
     {
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-        delay(DUR_PROG_B);
-        thrust = thrust + THRUST_LADDER;
+      esc.writeMicroseconds(MINIMUM_THRUST + thrust);
+      delay(DUR_PROG_B);
+      thrust = thrust + THRUST_LADDER;
     }
     esc.writeMicroseconds(MINIMUM_THRUST);
 
     break;
 
   default:
-    #ifdef DEBUG
-      Serial.println("Verkeerd motor test programma doorgegeven");
-    #endif
+#ifdef DEBUG
+    Serial.println("Verkeerd motor test programma doorgegeven");
+#endif
     break;
   }
 }
@@ -266,24 +267,30 @@ void motorTest(enum testPrograms prog)
 /*
   Function: LCD_rows
     print strings on LCD screen
-  Parameters: that's what's to be printed on row0 and row1 
+  Parameter: pointer to a string in a 2d
  */
 
-void LCD_show(const char *row0, const char *row1)
+void LCD_show(char **str)
 {
-  unsigned char y; // row index
+  unsigned char x,y; // x and y loop index
 
-  lcd.clear();
+  lcd.clear(); // clear the display
 
+  // for each row copy textlines to dispText char arrays
   for (y = 0; y < LCD_ROWS; y++)
   {
-    lcd.setCursor(0, y);
+      for (x = 0; x < LCD_COLS; x++)
+      {
+          str[0][x] = rowOneLCD[x];
+          str[1][x] = rowTwoLCD[x];
+      }
+  }
 
-    // if current row is line 0 print text for row 0
-    if (y == 0)
-      lcd.print(row0);
-    else // print text for row 1
-      lcd.print(row1);
+  // Display the contents of the display buffer on the LCD screen
+  for (y = 0; y < LCD_ROWS; y++, str++)
+  {
+    lcd.setCursor(0, y);
+    lcd.print(*str); // print the string buffer
   }
 }
 
@@ -295,40 +302,53 @@ void LCD_show(const char *row0, const char *row1)
 
 void userInterface(systemState cState)
 {
+  unsigned char y; // y loop index
+
+  // Memory allocation for the display text
+  char **dispText = new char *[LCD_ROWS];
+
+  for (y = 0; y < LCD_ROWS; y++)
+  {
+    dispText[y] = new char[LCD_COLS];
+  }
+
   switch (currentState)
   {
   case systemState::Setup:
     // Setup state here
-    textzero = "S: Setup       ";
-    textone  = "               ";
+    rowOneLCD = "S: Setup       ";
     break;
   case systemState::Calibrating:
     // Calibrating state here
-    textzero = "S: Calibrating ";
-    textone  = "               ";
+    rowOneLCD = "S: Calibrating ";
     break;
   case systemState::Reading:
     // S2 here
-    textzero = "S: Reading     ";
-    textone  = "               ";
+    rowOneLCD = "S: Reading     ";
     break;
   case systemState::Testing:
     // S3 Testing here
-    textzero = "S: Testing     ";
-    textone  = "               ";
+    rowOneLCD = "S: Testing     ";
     break;
   case systemState::Output:
     // S4 Output here
-    textzero = "S: Output      ";
-    textone  = "               ";
+    rowOneLCD = "S: Output      ";
     break;
 
   default:
-    textzero = "S: Error       ";
-    textone  = "No state passed";
+    rowOneLCD = "S: Error       ";
+    rowTwoLCD = "No state passed";
     break;
   }
 
-  LCD_show(textzero, textone); // show text on lcd screen
+  // Show the updated display
+  LCD_show(dispText);
+
+  // delete allocated memory for dispText buffer 
+  for (y = 0; y < LCD_ROWS; y++)
+  {
+    delete[] dispText[y];
+  }
+  delete[] dispText;
 
 }

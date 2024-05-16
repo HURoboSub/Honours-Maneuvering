@@ -82,7 +82,7 @@ void handleButtons(bool *pState); // Handle button presses and store states in b
 int readVernier(); // read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
 void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
-void LCD_show(const char *row0, const char *row1); // handles clear, cursor for both in cursor r0 row0  row1
+void LCD_show(char **str);
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 
 #endif
