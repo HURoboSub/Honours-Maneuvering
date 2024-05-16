@@ -265,8 +265,8 @@ void motorTest(enum testPrograms prog)
 }
 
 /*
-  Function: LCD_rows
-    print strings on LCD screen
+  Function: LCD_show
+    Handles the lcd display (clear, cursor and print) based on LCD_ROWS and LCD_COLS
   Parameter: pointer to a string in a 2d
  */
 
