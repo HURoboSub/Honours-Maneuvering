@@ -28,8 +28,8 @@ unsigned long lastReadTime = 0ul;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
-char const *rowOneLCD = "              ";   // const pointer to a char array containing linezero of LCD
-char const *rowTwoLCD = "                "; // textrow one of LCD
+char const *rowOneLCD = "               ";   // const pointer to a char array containing linezero of LCD
+char const *rowTwoLCD = "               "; // textrow one of LCD
 
 VernierLib Vernier; // create an instance of the VernierLib library
 
@@ -51,6 +51,7 @@ PMEASUREMENT pData = &data; // point to datastrucutre
 
 enum testPrograms testProgram = A; // default to test program A
 
+// 
 void setup()
 {
   currentState = systemState::Setup; // put system to Setup state
@@ -312,7 +313,7 @@ void userInterface(systemState cState)
     dispText[y] = new char[LCD_COLS];
   }
 
-  switch (currentState)
+  switch (cState)
   {
   case systemState::Setup:
     // Setup state here
@@ -334,8 +335,7 @@ void userInterface(systemState cState)
     // S4 Output here
     rowOneLCD = "S: Output      ";
     break;
-
-  default:
+  default: // Should never get in default state 
     rowOneLCD = "S: Error       ";
     rowTwoLCD = "No state passed";
     break;
