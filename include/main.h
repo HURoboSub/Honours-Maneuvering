@@ -45,6 +45,11 @@
 #define VOLTS_ADC_STEP 20 / 1024
 #define AMS_ADC_STEP 20 / 1024
 
+/* LCD properties */ 
+#define LCD_addr 0x3f  // i2c-address of LCD screen
+#define LCD_COLS 16    // number of chars on lcd screen
+#define LCD_ROWS 2    // number of lines
+
 struct measurement // structure containing the measurements
 {
     float voltage;
@@ -77,6 +82,7 @@ void handleButtons(bool *pState); // Handle button presses and store states in b
 int readVernier(); // read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
 void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
+void LCD_show(char **str);
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 
 #endif
