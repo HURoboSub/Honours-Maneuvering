@@ -207,13 +207,13 @@ void output2Serial(PMEASUREMENT p)
 
     Serial.print(millis() - lastReadTime);
     Serial.print(",");
-    Serial.println(p->force);
+    Serial.print(p->force);
     Serial.print(",");
     Serial.print(p->voltage, 2);
     Serial.print(",");
     Serial.print(p->current, 2);
     Serial.print(",");
-    Serial.print(p->power, 2);
+    Serial.println(p->power, 2);
   }
 }
 
