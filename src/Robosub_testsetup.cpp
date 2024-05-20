@@ -109,11 +109,10 @@ void setup()
   initMotor();         // Initialize the ESC
 
 
-  #ifdef CAL
   Calibrate();
-#endif
 
-  Serial.println("Druk op de knop om te starten");
+
+ // Serial.println("Druk op de knop om te starten");
 
   lcd.setCursor(0, 1);
   lcd.print("Druk op Groen");
@@ -126,7 +125,7 @@ void setup()
 }
 
 void loop()
-{
+{ 
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
@@ -145,7 +144,7 @@ void Calibrate()
   /* Amps Calibration */
   // lcd 
 
-  Serial.println((String)"Sluit " + CAL_AMP + "A aan op de testopstelling");
+  //Serial.println((String)"Sluit " + CAL_AMP + "A aan op de testopstelling");
   lcd.clear();
   lcd.home();
   lcd.print((String) CAL_AMP + "A aansluiten");
@@ -163,7 +162,7 @@ void Calibrate()
 
   /* Voltage Calibration */
   // lcd 
-  Serial.println((String)"Sluit " + CAL_VOLT + "V aan op de testopstelling");
+ // Serial.println((String)"Sluit " + CAL_VOLT + "V aan op de testopstelling");
   lcd.clear();
   lcd.home();
   
@@ -209,6 +208,7 @@ void initMotor()
  */
 void handleButtons(bool *pState) {
   currentState = systemState::Reading;  // put system to Reading state
+  userInterface(currentState);
 
   // for the NUM_BUTTONS increase i and state pointer
   for (int i = 0; i < NUM_BUTTONS; pState++, i++) {
@@ -249,6 +249,7 @@ float calcPower(PMEASUREMENT p)
   int voltVal = 0; // Initialize analog value for voltage
 
   currentState = systemState::Reading; // put system to Reading state
+    userInterface(currentState);
 
   // Read analog values from pins
   voltVal = analogRead(VOLT_PIN); // Read voltage value
@@ -276,6 +277,7 @@ void output2Serial(PMEASUREMENT p)
   else // print data
   {
     currentState = systemState::Output; // put system to Output state
+    userInterface(currentState);
 
     Serial.print(millis() - lastReadTime);
     Serial.print(",");
@@ -299,7 +301,8 @@ void motorTest(enum testPrograms prog)
   uint8_t thrust = 50;
 
   currentState = systemState::Testing; // put system to Testing state
-
+  userInterface(currentState);
+  
   switch (prog)
   {
   case A:
@@ -358,7 +361,6 @@ void LCD_show(char **str)
           str[1][x] = rowTwoLCD[x];
       }
   }
-
   // Display the contents of the display buffer on the LCD screen
   for (y = 0; y < LCD_ROWS; y++, str++)
   {
@@ -375,52 +377,52 @@ void LCD_show(char **str)
 
 void userInterface(systemState cState)
 {
-  unsigned char y; // y loop index
+  // unsigned char y; // y loop index
 
-  // Memory allocation for the display text
-  char **dispText = new char *[LCD_ROWS];
+  // // Memory allocation for the display text
+  // char **dispText = new char *[LCD_ROWS];
 
-  for (y = 0; y < LCD_ROWS; y++)
-  {
-    dispText[y] = new char[LCD_COLS];
-  }
+  // for (y = 0; y < LCD_ROWS; y++)
+  // {
+  //   dispText[y] = new char[LCD_COLS];
+  // }
 
-  switch (cState)
-  {
-  case systemState::Setup:
-    // Setup state here
-    rowOneLCD = "S: Setup       ";
-    break;
-  case systemState::Calibrating:
-    // Calibrating state here
-    rowOneLCD = "S: Calibrating ";
-    break;
-  case systemState::Reading:
-    // S2 here
-    rowOneLCD = "S: Reading     ";
-    break;
-  case systemState::Testing:
-    // S3 Testing here
-    rowOneLCD = "S: Testing     ";
-    break;
-  case systemState::Output:
-    // S4 Output here
-    rowOneLCD = "S: Output      ";
-    break;
-  default: // Should never get in default state 
-    rowOneLCD = "S: Error       ";
-    rowTwoLCD = "No state passed";
-    break;
-  }
+  // switch (cState)
+  // {
+  // case systemState::Setup:
+  //   // Setup state here
+  //   rowOneLCD = "S: Setup       ";
+  //   break;
+  // case systemState::Calibrating:
+  //   // Calibrating state here
+  //   rowOneLCD = "S: Calibrating ";
+  //   break;
+  // case systemState::Reading:
+  //   // S2 here
+  //   rowOneLCD = "S: Reading     ";
+  //   break;
+  // case systemState::Testing:
+  //   // S3 Testing here
+  //   rowOneLCD = "S: Testing     ";
+  //   break;
+  // case systemState::Output:
+  //   // S4 Output here
+  //   rowOneLCD = "S: Output      ";
+  //   break;
+  // default: // Should never get in default state 
+  //   rowOneLCD = "S: Error       ";
+  //   rowTwoLCD = "No state passed";
+  //   break;
+  // }
 
-  // Show the updated display
-  LCD_show(dispText);
+  // // Show the updated display
+  // LCD_show(dispText);
 
-  // delete allocated memory for dispText buffer 
-  for (y = 0; y < LCD_ROWS; y++)
-  {
-    delete[] dispText[y];
-  }
-  delete[] dispText;
+  // // delete allocated memory for dispText buffer 
+  // for (y = 0; y < LCD_ROWS; y++)
+  // {
+  //   delete[] dispText[y];
+  // }
+  // delete[] dispText;
 
 }

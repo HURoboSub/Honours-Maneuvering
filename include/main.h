@@ -52,7 +52,7 @@
 #define CAL_AMP   1
 
 /* LCD properties */ 
-#define LCD_addr 0x3f  // i2c-address of LCD screen
+#define LCD_addr 0x27  // i2c-address of LCD screen
 #define LCD_COLS 16    // number of chars on lcd screen
 #define LCD_ROWS 2    // number of lines
 
