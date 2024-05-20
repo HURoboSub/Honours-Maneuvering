@@ -26,7 +26,6 @@
 #include <Wire.h>       // Two Wire Interface Bus (I2C)
 #include <LiquidCrystal_I2C.h> // LCD i2c screen
 #include <Servo.h>      // Servo motor library
-#include <VernierLib.h> // Vernier functions 
 #include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 
 /* buttons */
@@ -42,8 +41,15 @@
 #define THRUST_LADDER 50
 
 /* Measurement ADC conf */
-#define VOLTS_ADC_STEP 20 / 1024
-#define AMS_ADC_STEP 20 / 1024
+#define MAX_ADC 1023
+
+#define NUM_ADC_READINGS 10
+
+#define MAX_VOLT  16
+#define MAX_AMP   10
+
+#define CAL_VOLT  10
+#define CAL_AMP   1
 
 /* LCD properties */ 
 #define LCD_addr 0x3f  // i2c-address of LCD screen
@@ -75,7 +81,7 @@ enum testPrograms // Motor test programm
     A, // Continuos
     B  // Ladder
 }; 
-
+void Calibrate();
 void initMotor(); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array

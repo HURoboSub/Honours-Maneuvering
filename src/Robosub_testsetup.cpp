@@ -20,7 +20,12 @@
 
 #include "main.h" // main header file
 
-#define DEBUG // (Serial) DEBUG mode (un)comment to toggle
+// #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
+ #define CAL    
+
+ /* ADC Calibration values */
+float ADC_V_Step = MAX_VOLT / MAX_ADC;
+float ADC_A_Step = MAX_AMP / MAX_ADC;
 
 /* Timing configuration */
 const int timeBtwnReadings = 500; // time between Vernierr
@@ -30,8 +35,6 @@ LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to L
 
 char const *rowOneLCD = "               ";   // const pointer to a char array containing linezero of LCD
 char const *rowTwoLCD = "               "; // textrow one of LCD
-
-VernierLib Vernier; // create an instance of the VernierLib library
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
@@ -84,7 +87,6 @@ void setup()
   output2Serial(pData); // output header row to serial
 
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
-  Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
 #ifdef DEBUG
   Serial.println(Vernier.sensorName());
@@ -105,6 +107,22 @@ void setup()
   // motor
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   initMotor();         // Initialize the ESC
+
+
+  #ifdef CAL
+  Calibrate();
+#endif
+
+  Serial.println("Druk op de knop om te starten");
+
+  lcd.setCursor(0, 1);
+  lcd.print("Druk op Groen");
+  do {
+    handleButtons(pButtonStates);
+  } while (buttonStates[1] == false);   // wachten totdat de meest linker button is ingedrukt geweest
+
+  lcd.clear();
+  lcd.home();
 }
 
 void loop()
@@ -112,10 +130,67 @@ void loop()
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  pData->force = readVernier();
+  // pData->force = readVernier();
   calcPower(pData);
   motorTest(testProgram);
   output2Serial(pData);
+}
+
+void Calibrate()
+{ 
+
+  uint16_t ADCval;
+  char* floatString = "                ";
+
+  /* Amps Calibration */
+  // lcd 
+
+  Serial.println((String)"Sluit " + CAL_AMP + "A aan op de testopstelling");
+  lcd.clear();
+  lcd.home();
+  lcd.print((String) CAL_AMP + "A aansluiten");
+
+  do {
+    handleButtons(pButtonStates);
+  } while (buttonStates[0] == false);   // wachten totdat de meest linker button is ingedrukt geweest
+
+  for(uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+      ADCval += analogRead(AMP_PIN);   // 10x meten, gemiddelde pakken
+  
+  ADCval /= NUM_ADC_READINGS;
+
+  ADC_A_Step = CAL_AMP / ADCval;
+
+  /* Voltage Calibration */
+  // lcd 
+  Serial.println((String)"Sluit " + CAL_VOLT + "V aan op de testopstelling");
+  lcd.clear();
+  lcd.home();
+  
+  dtostrf(ADC_A_Step, 2, 6, floatString);
+  lcd.print(floatString);
+  lcd.print(" A/Step");
+  lcd.setCursor(0, 1);
+
+  lcd.print((String) CAL_VOLT + "V aansluiten");
+
+  do {
+    handleButtons(pButtonStates);
+  } while (buttonStates[0] == false);   // wachten totdat de meest linker button is ingedrukt geweest
+
+  for(uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+      ADCval += analogRead(VOLT_PIN);   // 10x meten, gemiddelde pakken
+  
+  ADCval /= NUM_ADC_READINGS;
+
+  ADC_V_Step = CAL_VOLT / ADCval;
+
+  lcd.clear();
+  lcd.home();
+
+  dtostrf(ADC_V_Step, 2, 6, floatString);
+  lcd.print(floatString);
+  lcd.print(" V/Step");
 }
 
 /*
@@ -132,22 +207,19 @@ void initMotor()
   Function: handle button presses
   Parameters: pS, pointer to i'th index of buttonstatearray
  */
-void handleButtons(bool *pState)
-{
-  currentState = systemState::Reading; // put system to Reading state
+void handleButtons(bool *pState) {
+  currentState = systemState::Reading;  // put system to Reading state
 
   // for the NUM_BUTTONS increase i and state pointer
-  for (int i = 0; i < NUM_BUTTONS; pState++, i++)
-  {
+  for (int i = 0; i < NUM_BUTTONS; pState++, i++) {
     // Update the Bounce instance :
     buttons[i].update();
-    // If it fell, flag the need to toggle the LED
-    if (buttons[i].fell())
-    {
-      // aBtnPressed = true;
-      *pState = buttons[i].fell(); // change left value of this button state
-      digitalWrite(LED_BUILTIN, HIGH);
-    }
+
+    *pState = buttons[i].fell();  // change right value of this button state
+    
+    #ifdef DEBUG
+      Serial.println((String) "i:" + i + "\t state:" + *pState);
+    #endif
   }
 }
 
@@ -155,15 +227,15 @@ void handleButtons(bool *pState)
   Function: Reads varnier sensor and returns value
   Parameters:
  */
-int readVernier()
-{
-  currentState = systemState::Reading; // put system to Reading state
+// int readVernier()
+// {
+//   currentState = systemState::Reading; // put system to Reading state
 
-  float sensorReading = Vernier.readSensor();
-  delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
+//   float sensorReading = Vernier.readSensor();
+//   delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
 
-  return sensorReading;
-}
+//   return sensorReading;
+// }
 
 /*
   Function: calcPower
@@ -183,8 +255,8 @@ float calcPower(PMEASUREMENT p)
   ampVal = analogRead(AMP_PIN);   // Read current value
 
   // Convert analog values to actual voltage and current
-  p->voltage = (voltVal * VOLTS_ADC_STEP); // Calculate voltage in volts
-  p->current = (ampVal * AMS_ADC_STEP);    // Calculate current in amperes
+  p->voltage = (voltVal * ADC_V_Step); // Calculate voltage in volts
+  p->current = (ampVal * ADC_A_Step);    // Calculate current in amperes
 
   power = p->voltage * p->current; // Calculate power using the formula: power = voltage * current
 
