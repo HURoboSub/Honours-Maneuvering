@@ -21,9 +21,9 @@
 #include "main.h" // main header file
 
 // #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
- #define CAL    
+#define CAL
 
- /* ADC Calibration values */
+/* ADC Calibration values */
 float ADC_V_Step = MAX_VOLT / MAX_ADC;
 float ADC_A_Step = MAX_AMP / MAX_ADC;
 
@@ -33,7 +33,7 @@ unsigned long lastReadTime = 0ul;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
-char const *rowOneLCD = "               ";   // const pointer to a char array containing linezero of LCD
+char const *rowOneLCD = "               "; // const pointer to a char array containing linezero of LCD
 char const *rowTwoLCD = "               "; // textrow one of LCD
 
 /* PIN DEFINTIONS */
@@ -54,7 +54,7 @@ PMEASUREMENT pData = &data; // point to datastrucutre
 
 enum testPrograms testProgram = A; // default to test program A
 
-// 
+//
 void setup()
 {
   currentState = systemState::Setup; // put system to Setup state
@@ -64,7 +64,7 @@ void setup()
 
   lcd.init(); // initialize the lcd  screen
   lcd.backlight();
-  userInterface(currentState);// diplay setup state on LCD
+  userInterface(currentState); // diplay setup state on LCD
 
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
   pinMode(ESC_PIN, OUTPUT);
@@ -108,8 +108,7 @@ void setup()
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   initMotor();         // Initialize the ESC
 
-
-  #ifdef CAL
+#ifdef CAL
   Calibrate();
 #endif
 
@@ -117,9 +116,10 @@ void setup()
 
   lcd.setCursor(0, 1);
   lcd.print("Druk op Groen");
-  do {
+  do
+  {
     handleButtons(pButtonStates);
-  } while (buttonStates[1] == false);   // wachten totdat de meest linker button is ingedrukt geweest
+  } while (buttonStates[1] == false); // wachten totdat de meest linker button is ingedrukt geweest
 
   lcd.clear();
   lcd.home();
@@ -137,50 +137,52 @@ void loop()
 }
 
 void Calibrate()
-{ 
+{
 
   uint16_t ADCval;
-  char* floatString = "                ";
+  char *floatString = "                ";
 
   /* Amps Calibration */
-  // lcd 
+  // lcd
 
-  Serial.println((String)"Sluit " + CAL_AMP + "A aan op de testopstelling");
+  Serial.println((String) "Sluit " + CAL_AMP + "A aan op de testopstelling");
   lcd.clear();
   lcd.home();
-  lcd.print((String) CAL_AMP + "A aansluiten");
+  lcd.print((String)CAL_AMP + "A aansluiten");
 
-  do {
+  do
+  {
     handleButtons(pButtonStates);
-  } while (buttonStates[0] == false);   // wachten totdat de meest linker button is ingedrukt geweest
+  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
 
-  for(uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-      ADCval += analogRead(AMP_PIN);   // 10x meten, gemiddelde pakken
-  
+  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+    ADCval += analogRead(AMP_PIN); // 10x meten, gemiddelde pakken
+
   ADCval /= NUM_ADC_READINGS;
 
   ADC_A_Step = CAL_AMP / ADCval;
 
   /* Voltage Calibration */
-  // lcd 
-  Serial.println((String)"Sluit " + CAL_VOLT + "V aan op de testopstelling");
+  // lcd
+  Serial.println((String) "Sluit " + CAL_VOLT + "V aan op de testopstelling");
   lcd.clear();
   lcd.home();
-  
+
   dtostrf(ADC_A_Step, 2, 6, floatString);
   lcd.print(floatString);
   lcd.print(" A/Step");
   lcd.setCursor(0, 1);
 
-  lcd.print((String) CAL_VOLT + "V aansluiten");
+  lcd.print((String)CAL_VOLT + "V aansluiten");
 
-  do {
+  do
+  {
     handleButtons(pButtonStates);
-  } while (buttonStates[0] == false);   // wachten totdat de meest linker button is ingedrukt geweest
+  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
 
-  for(uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-      ADCval += analogRead(VOLT_PIN);   // 10x meten, gemiddelde pakken
-  
+  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+    ADCval += analogRead(VOLT_PIN); // 10x meten, gemiddelde pakken
+
   ADCval /= NUM_ADC_READINGS;
 
   ADC_V_Step = CAL_VOLT / ADCval;
@@ -207,19 +209,21 @@ void initMotor()
   Function: handle button presses
   Parameters: pS, pointer to i'th index of buttonstatearray
  */
-void handleButtons(bool *pState) {
-  currentState = systemState::Reading;  // put system to Reading state
+void handleButtons(bool *pState)
+{
+  currentState = systemState::Reading; // put system to Reading state
 
   // for the NUM_BUTTONS increase i and state pointer
-  for (int i = 0; i < NUM_BUTTONS; pState++, i++) {
+  for (int i = 0; i < NUM_BUTTONS; pState++, i++)
+  {
     // Update the Bounce instance :
     buttons[i].update();
 
-    *pState = buttons[i].fell();  // change right value of this button state
-    
-    #ifdef DEBUG
-      Serial.println((String) "i:" + i + "\t state:" + *pState);
-    #endif
+    *pState = buttons[i].fell(); // change right value of this button state
+
+#ifdef DEBUG
+    Serial.println((String) "i:" + i + "\t state:" + *pState);
+#endif
   }
 }
 
@@ -256,7 +260,7 @@ float calcPower(PMEASUREMENT p)
 
   // Convert analog values to actual voltage and current
   p->voltage = (voltVal * ADC_V_Step); // Calculate voltage in volts
-  p->current = (ampVal * ADC_A_Step);    // Calculate current in amperes
+  p->current = (ampVal * ADC_A_Step);  // Calculate current in amperes
 
   power = p->voltage * p->current; // Calculate power using the formula: power = voltage * current
 
@@ -345,18 +349,18 @@ void motorTest(enum testPrograms prog)
 
 void LCD_show(char **str)
 {
-  unsigned char x,y; // x and y loop index
+  unsigned char x, y; // x and y loop index
 
   lcd.clear(); // clear the display
 
   // for each row copy textlines to dispText char arrays
   for (y = 0; y < LCD_ROWS; y++)
   {
-      for (x = 0; x < LCD_COLS; x++)
-      {
-          str[0][x] = rowOneLCD[x];
-          str[1][x] = rowTwoLCD[x];
-      }
+    for (x = 0; x < LCD_COLS; x++)
+    {
+      str[0][x] = rowOneLCD[x];
+      str[1][x] = rowTwoLCD[x];
+    }
   }
 
   // Display the contents of the display buffer on the LCD screen
@@ -407,7 +411,7 @@ void userInterface(systemState cState)
     // S4 Output here
     rowOneLCD = "S: Output      ";
     break;
-  default: // Should never get in default state 
+  default: // Should never get in default state
     rowOneLCD = "S: Error       ";
     rowTwoLCD = "No state passed";
     break;
@@ -416,11 +420,10 @@ void userInterface(systemState cState)
   // Show the updated display
   LCD_show(dispText);
 
-  // delete allocated memory for dispText buffer 
+  // delete allocated memory for dispText buffer
   for (y = 0; y < LCD_ROWS; y++)
   {
     delete[] dispText[y];
   }
   delete[] dispText;
-
 }
