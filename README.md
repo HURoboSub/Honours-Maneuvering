@@ -23,10 +23,13 @@ Software for the motor test setup. Allows to measure and plot the power and forc
 7. Open VS-code workspace
 8. Make a branch of the main per new SW function
 
-<ins>Error</ins>:  
+Error:  
 Could not find one of the manifest files ‘package.json’
-<ins>Solution</ins>:  
-1. Remove C:\Users\USERNAME\\.platformio folder 2. Restart VS-code 3. PlatformIO reinstalls itself 4. Retry compilation
+
+Solution:  
+1. Remove C:\Users\USERNAME\\.platformio folder
+2. Restart VS-code
+3. PlatformIO reinstalls itself 4. Retry compilation
 
 ## To-Do
 - [ ] test readVernier force sensor
