@@ -29,7 +29,8 @@ Could not find one of the manifest files ‘package.json’
 Solution:  
 1. Remove C:\Users\USERNAME\\.platformio folder
 2. Restart VS-code
-3. PlatformIO reinstalls itself 4. Retry compilation
+3. PlatformIO reinstalls itself
+4. Retry compilation
 
 ## To-Do
 - [ ] test readVernier force sensor
