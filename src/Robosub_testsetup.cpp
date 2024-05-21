@@ -9,9 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 14-05-2024
+ * Date: 21-05-2024
  *
- * Version: 1.5.0
+ * Version: 1.6.0
  *
  * CHANGELOG:
  *
@@ -21,7 +21,7 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-// #define CAL
+#define CAL // Whether to calibrate shunt at the beginning 
 // #define USE_VERNIERLIB
 
 /* ADC Calibration values */
@@ -108,18 +108,23 @@ void setup()
   // motor
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   initMotor();         // Initialize the ESC
-
+  
+  #ifdef CAL
   Calibrate();
- // Serial.println("Druk op de knop om te starten");
+  #endif 
 
   lcd.setCursor(0, 1);
   lcd.print("Druk op Groen");
+  #ifdef DEBUG 
+  Serial.println("Druk op Groen");
+  #endif
+
   do
   {
     handleButtons(pButtonStates);
-  } while (buttonStates[1] == false); // wachten totdat de meest linker button is ingedrukt geweest
+  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
 
-  lcd.clear();
+  lcd.clear(); // leeghalen lcd scherm
   lcd.home();
 }
 
@@ -140,9 +145,10 @@ void Calibrate()
   uint16_t ADCval;
   char *floatString = "                ";
 
+  currentState = systemState::Calibrating; 
   /* Amps Calibration */
-  // lcd
   #ifdef DEBUG 
+  userInterface(currentState);
   Serial.println((String)CAL_AMP + "A aansluiten");
   #endif
 
@@ -163,15 +169,20 @@ void Calibrate()
   ADC_A_Step = CAL_AMP / ADCval;
 
   /* Voltage Calibration */
-  // lcd 
- // Serial.println((String)"Sluit " + CAL_VOLT + "V aan op de testopstelling");
   lcd.clear();
   lcd.home();
 
   dtostrf(ADC_A_Step, 2, 6, floatString);
+  #ifdef DEBUG 
+  Serial.println((String)"ADC_A_Step: " + floatString + " A/Step" );
+  #endif
   lcd.print(floatString);
   lcd.print(" A/Step");
   lcd.setCursor(0, 1);
+
+  #ifdef DEBUG 
+  Serial.println((String) + CAL_VOLT + "V aansluiten");
+  #endif
 
   lcd.print((String)CAL_VOLT + "V aansluiten");
 
@@ -191,6 +202,9 @@ void Calibrate()
   lcd.home();
 
   dtostrf(ADC_V_Step, 2, 6, floatString);
+  #ifdef DEBUG 
+  Serial.println((String)"ADC_V_Step: " + floatString + " V/Step");
+  #endif
   lcd.print(floatString);
   lcd.print(" V/Step");
 }
@@ -210,8 +224,6 @@ void initMotor()
   Parameters: pS, pointer to i'th index of buttonstatearray
  */
 void handleButtons(bool *pState) {
-  currentState = systemState::Reading;  // put system to Reading state
-  userInterface(currentState);
 
   // for the NUM_BUTTONS increase i and state pointer
   for (int i = 0; i < NUM_BUTTONS; pState++, i++)
@@ -256,7 +268,7 @@ float calcPower(PMEASUREMENT p)
   int voltVal = 0; // Initialize analog value for voltage
 
   currentState = systemState::Reading; // put system to Reading state
-    userInterface(currentState);
+  userInterface(currentState);
 
   // Read analog values from pins
   voltVal = analogRead(VOLT_PIN); // Read voltage value
@@ -394,36 +406,38 @@ void userInterface(systemState cState)
   //   dispText[y] = new char[LCD_COLS];
   // }
 
-  // switch (cState)
-  // {
-  // case systemState::Setup:
-  //   // Setup state here
-  //   rowOneLCD = "S: Setup       ";
-  //   break;
-  // case systemState::Calibrating:
-  //   // Calibrating state here
-  //   rowOneLCD = "S: Calibrating ";
-  //   break;
-  // case systemState::Reading:
-  //   // S2 here
-  //   rowOneLCD = "S: Reading     ";
-  //   break;
-  // case systemState::Testing:
-  //   // S3 Testing here
-  //   rowOneLCD = "S: Testing     ";
-  //   break;
-  // case systemState::Output:
-  //   // S4 Output here
-  //   rowOneLCD = "S: Output      ";
-  //   break;
-  // default: // Should never get in default state 
-  //   rowOneLCD = "S: Error       ";
-  //   rowTwoLCD = "No state passed";
-  //   break;
-  // }
+  switch (cState)
+  {
+  case systemState::Setup:
+    // Setup state here
+    rowOneLCD = "S: Setup       ";
+    break;
+  case systemState::Calibrating:
+    // Calibrating state here
+    rowOneLCD = "S: Calibrating ";
+    break;
+  case systemState::Reading:
+    // S2 here
+    rowOneLCD = "S: Reading     ";
+    break;
+  case systemState::Testing:
+    // S3 Testing here
+    rowOneLCD = "S: Testing     ";
+    break;
+  case systemState::Output:
+    // S4 Output here
+    rowOneLCD = "S: Output      ";
+    break;
+  default: // Should never get in default state 
+    rowOneLCD = "S: Error       ";
+    rowTwoLCD = "No state passed";
+    break;
+  }
 
-  // // Show the updated display
-  // LCD_show(dispText);
+  
+  #ifdef DEBUG
+  Serial.println(rowOneLCD); // Show state in Serial
+  #endif
 
   // // delete allocated memory for dispText buffer 
   // for (y = 0; y < LCD_ROWS; y++)
