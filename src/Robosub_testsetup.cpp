@@ -248,7 +248,7 @@ void motorTest(enum testPrograms prog)
     {
         timer_motor_test_a.update();
         // Put the vernier sensor read func here (can be another timer if needed)
-        if(timer_expired >= CYCLES)
+        if(timer_expired >= CYCLES )
         {
           continues_motor_test = false;
           timer_expired = 0;
