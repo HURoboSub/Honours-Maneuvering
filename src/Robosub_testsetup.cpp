@@ -20,8 +20,9 @@
 
 #include "main.h" // main header file
 
-// #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-#define CAL
+#define DEBUG // (Serial) DEBUG mode (un)comment to toggle
+// #define CAL
+// #define USE_VERNIERLIB
 
 /* ADC Calibration values */
 float ADC_V_Step = MAX_VOLT / MAX_ADC;
@@ -88,7 +89,7 @@ void setup()
 
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
 
-#ifdef DEBUG
+#ifdef USE_VERNIERLIB
   Serial.println(Vernier.sensorName());
   Serial.print(" ");
   Serial.println("Readings taken using Ardunio");
@@ -109,8 +110,6 @@ void setup()
   initMotor();         // Initialize the ESC
 
   Calibrate();
-
-
  // Serial.println("Druk op de knop om te starten");
 
   lcd.setCursor(0, 1);
@@ -143,8 +142,10 @@ void Calibrate()
 
   /* Amps Calibration */
   // lcd
+  #ifdef DEBUG 
+  Serial.println((String)CAL_AMP + "A aansluiten");
+  #endif
 
-  //Serial.println((String)"Sluit " + CAL_AMP + "A aan op de testopstelling");
   lcd.clear();
   lcd.home();
   lcd.print((String)CAL_AMP + "A aansluiten");
@@ -217,12 +218,15 @@ void handleButtons(bool *pState) {
   {
     // Update the Bounce instance :
     buttons[i].update();
-
+    
     *pState = buttons[i].fell(); // change right value of this button state
 
-#ifdef DEBUG
-    Serial.println((String) "i:" + i + "\t state:" + *pState);
-#endif
+    #ifdef DEBUG 
+    if (buttons[i].fell())
+    {
+        Serial.println((String)"knop: " + i + " ingedrukt\t state: " + *pState);
+    }
+    #endif
   }
 }
 
