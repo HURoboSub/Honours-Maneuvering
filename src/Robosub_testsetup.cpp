@@ -43,9 +43,11 @@ uint8_t ESC_PIN = 11;                // Define ESC control pin
 
 TimerEvent timer_motor_test_a;
 TimerEvent timer_motor_test_b;
+TimerEvent timer_motor_test_c;
+// Create the timers
 
 uint8_t timer_expired = 0;
-bool continues_motor_test = true;
+bool continuous_motor_test = true;
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 Bounce * buttons = new Bounce[NUM_BUTTONS]; // Initiate 3 Bounce objects
@@ -235,43 +237,59 @@ void motorTest(enum testPrograms prog)
 
   currentState = systemState::Testing; // put system to Testing 
 
-  timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler);
-  timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);
-
   switch (prog)
   {
   case A:
+    timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     /* Testprogramma A continuous
           Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    continues_motor_test = true;
-    while(continues_motor_test)
+    continuous_motor_test = true;  
+    while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
     {
-        timer_motor_test_a.update();
+        timer_motor_test_a.update();  // Update the timer 
         // Put the vernier sensor read func here (can be another timer if needed)
-        if(timer_expired >= CYCLES )
+        if(timer_expired >= CYCLES )  // Check if the loop has been played 500 times
         {
-          continues_motor_test = false;
-          timer_expired = 0;
+          continuous_motor_test = false;  // Set the bool to false to stop the while loop
+          timer_expired = 0;  // Reset timer_expired
+          esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
         }
     }
 
     break;
 
   case B:
+   timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
     /* Testprogramma B ladder 
        Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
      */
-    continues_motor_test = true;
-    while(continues_motor_test)
+    continuous_motor_test = true;
+    while(continuous_motor_test)  // While loop gets played as long as continuous_motor_test is true
     {
-        timer_motor_test_b.update();
+        timer_motor_test_b.update();  // Update the timer
         // Put the vernier sensor read func here (can be another timer if needed)
-        if(timer_expired >= STEPS)
+        if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
         {
-          continues_motor_test = false;
-          timer_expired = 0;
+          continuous_motor_test = false;  //Set bool to false to stop loop
+          timer_expired = 0;  // Reset timer_expired
+          esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
         }
     }
+    break;
+
+    case C:
+     timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler);  // Set the timer
+    /*Testprogramma C Ramp
+      Deze functie laat de motor direct op fullspeed gaan
+    */
+    timer_motor_test_c.update();  // Update the timer
+        // Put the vernier sensor read func here (can be another timer if needed)
+        if(timer_expired >= 1)  //Check if the loop has been played 9 times
+        {
+          continuous_motor_test = false;  //Set bool to false to stop loop
+          timer_expired = 0;  // Reset timer_expired
+          esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
+        }
     break;
 
   default:
@@ -286,26 +304,27 @@ void prog_a_timer_handler(void)
 {
   uint8_t i;
   uint8_t thrust = 50;
-  for (i = 0; i == CYCLES; i++)
-    {
-        thrust = thrust + i;
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-        delay(DUR_PROG_A);
-    }
-    esc.writeMicroseconds(MINIMUM_THRUST);
+
+        thrust = thrust + 1;  	                        // Ramp the thrust up with one
+        esc.writeMicroseconds(MINIMUM_THRUST + thrust); // Set motor to 1500+ thrust
+
+        timer_expired += 1;                             // Add one to timer_expired
 }
 
 void prog_b_timer_handler(void)
 {
   uint8_t i;
   uint8_t thrust = 50;
-  for(i = 0; i <= STEPS; i++)
-    {
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-        delay(DUR_PROG_B);
-        thrust = thrust + THRUST_LADDER;
-    }
-    esc.writeMicroseconds(MINIMUM_THRUST);
+  
+    esc.writeMicroseconds(MINIMUM_THRUST + thrust);     // Set motor to 1500 + thrust
+    thrust = thrust + THRUST_LADDER;                    // Add 50 to thrust 
+    timer_expired += 1;                                 // Add one to timer_expired
+}
+
+void prog_c_timer_handler(void)
+{ 
+    esc.writeMicroseconds(MAXIMUM_THRUST);              // Set motor to 2000
+    timer_expired += 1;                                 // Add one to timer_expired
 }
 
 /*

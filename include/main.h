@@ -37,9 +37,11 @@
 #define CYCLES 500
 #define STEPS 9
 #define MINIMUM_THRUST 1500
+#define MAXIMUM_THRUST 2000
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
 #define DUR_PROG_B 10000
+#define DUR_PROG_C 3000
 #define THRUST_LADDER 50
 
 /* Measurement ADC conf */
@@ -69,7 +71,8 @@ enum class systemState {
 enum testPrograms // Motor test programm
 {
     A, // Continuos
-    B  // Ladder
+    B,  // Ladder
+    C   // Ramp
 }; 
 
 void initMotor(); // Initialise motor
@@ -81,5 +84,6 @@ void userInterface(systemState cState); // Displays the systemstate on the LCD s
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 void prog_a_timer_handler(void);
 void prog_b_timer_handler(void);
+void prog_c_timer_handler(void);
 
 #endif
