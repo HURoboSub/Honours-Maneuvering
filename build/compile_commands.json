@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/build",
+  "command": "/Library/Developer/CommandLineTools/usr/bin/cc  -I\"/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/.pio/libdeps/nanoatmega328/Unity/src\" -I\"/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/build\" -g -std=c11 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.0.sdk -mmacosx-version-min=13.5 -o CMakeFiles/unity.dir/src/unity.c.o -c \"/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/.pio/libdeps/nanoatmega328/Unity/src/unity.c\"",
+  "file": "/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/.pio/libdeps/nanoatmega328/Unity/src/unity.c",
+  "output": "CMakeFiles/unity.dir/src/unity.c.o"
+}
+]

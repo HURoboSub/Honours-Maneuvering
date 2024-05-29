@@ -9,9 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 14-05-2024
+ * Date: 29-05-2024
  *
- * Version: 1.5.0
+ * Version: 1.6.1
  *
  * CHANGELOG:
  *
@@ -21,21 +21,14 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
+#define CAL // Whether to calibrate shunt at the beginning 
+// #define USE_VERNIERLIB
 
-/* Timing configuration */
-const int timeBtwnReadings = 500; // time between Vernierr
-unsigned long lastReadTime = 0ul;
-
-LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
-
-char const *rowOneLCD = "               ";   // const pointer to a char array containing linezero of LCD
-char const *rowTwoLCD = "               "; // textrow one of LCD
-
-VernierLib Vernier; // create an instance of the VernierLib library
+enum testPrograms testProgram = A; // default to test program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
-uint8_t AMP_PIN = A1;  // Define Amperage control
+uint8_t AMP_PIN = A1; // Define Amperage control
 
 uint8_t ESC_PIN = 3; // Define ESC control pin
 
@@ -44,14 +37,24 @@ Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
 
+/* ADC Calibration values */
+float ADC_V_Step = MAX_VOLT / MAX_ADC;
+float ADC_A_Step = MAX_AMP / MAX_ADC;
+
+LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
+
+char const *rowOneLCD = "               "; // const pointer to a char array containing linezero of LCD
+char const *rowTwoLCD = "               "; // textrow one of LCD
+
 Servo esc; // Create a Servo object
 
 MEASUREMENT data;           // measurement data
 PMEASUREMENT pData = &data; // point to datastrucutre
 
-enum testPrograms testProgram = A; // default to test program A
+/* Timing configuration */
+unsigned long lastReadTime = 0ul;
 
-// 
+//
 void setup()
 {
   currentState = systemState::Setup; // put system to Setup state
@@ -61,7 +64,7 @@ void setup()
 
   lcd.init(); // initialize the lcd  screen
   lcd.backlight();
-  userInterface(currentState);// diplay setup state on LCD
+  userInterface(currentState); // diplay setup state on LCD
 
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
   pinMode(ESC_PIN, OUTPUT);
@@ -84,9 +87,8 @@ void setup()
   output2Serial(pData); // output header row to serial
 
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
-  Vernier.autoID(); // this is the routine to do the autoID Serial.println("Vernier Format 2");
 
-#ifdef DEBUG
+#ifdef USE_VERNIERLIB
   Serial.println(Vernier.sensorName());
   Serial.print(" ");
   Serial.println("Readings taken using Ardunio");
@@ -105,17 +107,105 @@ void setup()
   // motor
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   initMotor();         // Initialize the ESC
+  
+  #ifdef CAL
+  Calibrate();
+  #endif 
+
+  lcd.setCursor(0, 1);
+  lcd.print("Press Green");
+  #ifdef DEBUG 
+  Serial.println("Press Green");
+  #endif
+
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
+
+  lcd.clear(); // leeghalen lcd scherm
+  lcd.home();
 }
 
 void loop()
-{
+{ 
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  pData->force = readVernier();
+  // pData->force = readVernier();
   calcPower(pData);
   motorTest(testProgram);
   output2Serial(pData);
+}
+
+void Calibrate()
+{
+
+  uint16_t ADCval;
+  char *floatString = "                ";
+
+  currentState = systemState::Calibrating; 
+  /* Amps Calibration */
+  #ifdef DEBUG 
+  userInterface(currentState);
+  Serial.println((String)CAL_AMP + "A aansluiten");
+  #endif
+
+  lcd.clear();
+  lcd.home();
+  lcd.print((String)CAL_AMP + "A aansluiten");
+
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
+
+  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+    ADCval += analogRead(AMP_PIN); // 10x meten, gemiddelde pakken
+
+  ADCval /= NUM_ADC_READINGS;
+
+  ADC_A_Step = CAL_AMP / ADCval;
+
+  /* Voltage Calibration */
+  lcd.clear();
+  lcd.home();
+
+  dtostrf(ADC_A_Step, 2, 6, floatString);
+  #ifdef DEBUG 
+  Serial.println((String)"ADC_A_Step: " + floatString + " A/Step" );
+  #endif
+  lcd.print(floatString);
+  lcd.print(" A/Step");
+  lcd.setCursor(0, 1);
+
+  #ifdef DEBUG 
+  Serial.println((String) + CAL_VOLT + "V aansluiten");
+  #endif
+
+  lcd.print((String)CAL_VOLT + "V aansluiten");
+
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
+
+  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+    ADCval += analogRead(VOLT_PIN); // 10x meten, gemiddelde pakken
+
+  ADCval /= NUM_ADC_READINGS;
+
+  ADC_V_Step = CAL_VOLT / ADCval;
+
+  lcd.clear();
+  lcd.home();
+
+  dtostrf(ADC_V_Step, 2, 6, floatString);
+  #ifdef DEBUG 
+  Serial.println((String)"ADC_V_Step: " + floatString + " V/Step");
+  #endif
+  lcd.print(floatString);
+  lcd.print(" V/Step");
 }
 
 /*
@@ -132,22 +222,22 @@ void initMotor()
   Function: handle button presses
   Parameters: pS, pointer to i'th index of buttonstatearray
  */
-void handleButtons(bool *pState)
-{
-  currentState = systemState::Reading; // put system to Reading state
+void handleButtons(bool *pState) {
 
   // for the NUM_BUTTONS increase i and state pointer
   for (int i = 0; i < NUM_BUTTONS; pState++, i++)
   {
     // Update the Bounce instance :
     buttons[i].update();
-    // If it fell, flag the need to toggle the LED
+    
+    *pState = buttons[i].fell(); // change right value of this button state
+
+    #ifdef DEBUG 
     if (buttons[i].fell())
     {
-      // aBtnPressed = true;
-      *pState = buttons[i].fell(); // change left value of this button state
-      digitalWrite(LED_BUILTIN, HIGH);
+        Serial.println((String)"button: " + i + " pressed\t state: " + *pState);
     }
+    #endif
   }
 }
 
@@ -155,15 +245,14 @@ void handleButtons(bool *pState)
   Function: Reads varnier sensor and returns value
   Parameters:
  */
-int readVernier()
-{
-  currentState = systemState::Reading; // put system to Reading state
+// int readVernier()
+// {
+//   currentState = systemState::Reading; // put system to Reading state
 
-  float sensorReading = Vernier.readSensor();
-  delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
+//   float sensorReading = Vernier.readSensor();
 
-  return sensorReading;
-}
+//   return sensorReading;
+// }
 
 /*
   Function: calcPower
@@ -177,14 +266,15 @@ float calcPower(PMEASUREMENT p)
   int voltVal = 0; // Initialize analog value for voltage
 
   currentState = systemState::Reading; // put system to Reading state
+  userInterface(currentState);
 
   // Read analog values from pins
   voltVal = analogRead(VOLT_PIN); // Read voltage value
   ampVal = analogRead(AMP_PIN);   // Read current value
 
   // Convert analog values to actual voltage and current
-  p->voltage = (voltVal * VOLTS_ADC_STEP); // Calculate voltage in volts
-  p->current = (ampVal * AMS_ADC_STEP);    // Calculate current in amperes
+  p->voltage = (voltVal * ADC_V_Step); // Calculate voltage in volts
+  p->current = (ampVal * ADC_A_Step);  // Calculate current in amperes
 
   power = p->voltage * p->current; // Calculate power using the formula: power = voltage * current
 
@@ -193,6 +283,11 @@ float calcPower(PMEASUREMENT p)
   return power; // Return the calculated power
 }
 
+/*
+  Function: output2Serial
+  Prints measurement data on Serial
+  Parameters: PMEASUREMENT p, pointer to measurement data structure
+ */
 void output2Serial(PMEASUREMENT p)
 {
   if (currentState == systemState::Setup) // if system is in setup mode
@@ -204,6 +299,7 @@ void output2Serial(PMEASUREMENT p)
   else // print data
   {
     currentState = systemState::Output; // put system to Output state
+    userInterface(currentState);
 
     Serial.print(millis() - lastReadTime);
     Serial.print(",");
@@ -220,6 +316,12 @@ void output2Serial(PMEASUREMENT p)
 /*
 Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
 */
+
+/*
+  Function: motorTest
+  Deze functie laat de motor door CYCLES standen lopen. DUR_PROG_A, DUR_PROG_B
+  Parameters: enum testPrograms prog, which tesprogram to run
+ */
 void motorTest(enum testPrograms prog)
 {
 
@@ -227,7 +329,8 @@ void motorTest(enum testPrograms prog)
   uint8_t thrust = 50;
 
   currentState = systemState::Testing; // put system to Testing state
-
+  userInterface(currentState);
+  
   switch (prog)
   {
   case A:
@@ -271,29 +374,28 @@ void motorTest(enum testPrograms prog)
   Parameter: pointer to a string in a 2d
  */
 
-void LCD_show(char **str)
-{
-  unsigned char x,y; // x and y loop index
+// void LCD_show(char **str)
+// {
+//   unsigned char x, y; // x and y loop index
 
-  lcd.clear(); // clear the display
+//   lcd.clear(); // clear the display
 
-  // for each row copy textlines to dispText char arrays
-  for (y = 0; y < LCD_ROWS; y++)
-  {
-      for (x = 0; x < LCD_COLS; x++)
-      {
-          str[0][x] = rowOneLCD[x];
-          str[1][x] = rowTwoLCD[x];
-      }
-  }
-
-  // Display the contents of the display buffer on the LCD screen
-  for (y = 0; y < LCD_ROWS; y++, str++)
-  {
-    lcd.setCursor(0, y);
-    lcd.print(*str); // print the string buffer
-  }
-}
+//   // for each row copy textlines to dispText char arrays
+//   for (y = 0; y < LCD_ROWS; y++)
+//   {
+//     for (x = 0; x < LCD_COLS; x++)
+//     {
+//       str[0][x] = rowOneLCD[x];
+//       str[1][x] = rowTwoLCD[x];
+//     }
+//   }
+//   // Display the contents of the display buffer on the LCD screen
+//   for (y = 0; y < LCD_ROWS; y++, str++)
+//   {
+//     lcd.setCursor(0, y);
+//     lcd.print(*str); // print the string buffer
+//   }
+// }
 
 /*
   Function: userInterface
@@ -303,15 +405,15 @@ void LCD_show(char **str)
 
 void userInterface(systemState cState)
 {
-  unsigned char y; // y loop index
+  // unsigned char y; // y loop index
 
-  // Memory allocation for the display text
-  char **dispText = new char *[LCD_ROWS];
+  // // Memory allocation for the display text
+  // char **dispText = new char *[LCD_ROWS];
 
-  for (y = 0; y < LCD_ROWS; y++)
-  {
-    dispText[y] = new char[LCD_COLS];
-  }
+  // for (y = 0; y < LCD_ROWS; y++)
+  // {
+  //   dispText[y] = new char[LCD_COLS];
+  // }
 
   switch (cState)
   {
@@ -341,14 +443,16 @@ void userInterface(systemState cState)
     break;
   }
 
-  // Show the updated display
-  LCD_show(dispText);
+  
+  #ifdef DEBUG
+  Serial.println(rowOneLCD); // Show state in Serial
+  #endif
 
-  // delete allocated memory for dispText buffer 
-  for (y = 0; y < LCD_ROWS; y++)
-  {
-    delete[] dispText[y];
-  }
-  delete[] dispText;
+  // // delete allocated memory for dispText buffer 
+  // for (y = 0; y < LCD_ROWS; y++)
+  // {
+  //   delete[] dispText[y];
+  // }
+  // delete[] dispText;
 
 }
