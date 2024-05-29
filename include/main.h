@@ -40,7 +40,7 @@
 #define DUR_PROG_B 10000
 #define THRUST_LADDER 50
 
-/* Measurement ADC conf */
+/* Measurement ADC configuration */
 #define MAX_ADC 1023
 
 #define NUM_ADC_READINGS 10
@@ -81,14 +81,15 @@ enum testPrograms // Motor test programm
     A, // Continuos
     B  // Ladder
 }; 
-void Calibrate();
+
+void Calibrate(); // Calibrate the shunts voltage and current
 void initMotor(); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 int readVernier(); // read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
 void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
-void LCD_show(char **str);
+// void LCD_show(char **str); // UNUSED single LCD_Show function to handle .clear .cursor .print at once
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 
 #endif

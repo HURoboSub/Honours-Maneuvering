@@ -9,9 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 21-05-2024
+ * Date: 29-05-2024
  *
- * Version: 1.6.0
+ * Version: 1.6.1
  *
  * CHANGELOG:
  *
@@ -24,22 +24,11 @@
 #define CAL // Whether to calibrate shunt at the beginning 
 // #define USE_VERNIERLIB
 
-/* ADC Calibration values */
-float ADC_V_Step = MAX_VOLT / MAX_ADC;
-float ADC_A_Step = MAX_AMP / MAX_ADC;
-
-/* Timing configuration */
-const int timeBtwnReadings = 500; // time between Vernierr
-unsigned long lastReadTime = 0ul;
-
-LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
-
-char const *rowOneLCD = "               "; // const pointer to a char array containing linezero of LCD
-char const *rowTwoLCD = "               "; // textrow one of LCD
+enum testPrograms testProgram = A; // default to test program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
-uint8_t AMP_PIN = A1;  // Define Amperage control
+uint8_t AMP_PIN = A1; // Define Amperage control
 
 uint8_t ESC_PIN = 3; // Define ESC control pin
 
@@ -48,12 +37,22 @@ Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
 
+/* ADC Calibration values */
+float ADC_V_Step = MAX_VOLT / MAX_ADC;
+float ADC_A_Step = MAX_AMP / MAX_ADC;
+
+LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
+
+char const *rowOneLCD = "               "; // const pointer to a char array containing linezero of LCD
+char const *rowTwoLCD = "               "; // textrow one of LCD
+
 Servo esc; // Create a Servo object
 
 MEASUREMENT data;           // measurement data
 PMEASUREMENT pData = &data; // point to datastrucutre
 
-enum testPrograms testProgram = A; // default to test program A
+/* Timing configuration */
+unsigned long lastReadTime = 0ul;
 
 //
 void setup()
@@ -114,9 +113,9 @@ void setup()
   #endif 
 
   lcd.setCursor(0, 1);
-  lcd.print("Druk op Groen");
+  lcd.print("Press Green");
   #ifdef DEBUG 
-  Serial.println("Druk op Groen");
+  Serial.println("Press Green");
   #endif
 
   do
@@ -236,7 +235,7 @@ void handleButtons(bool *pState) {
     #ifdef DEBUG 
     if (buttons[i].fell())
     {
-        Serial.println((String)"knop: " + i + " ingedrukt\t state: " + *pState);
+        Serial.println((String)"button: " + i + " pressed\t state: " + *pState);
     }
     #endif
   }
@@ -251,7 +250,6 @@ void handleButtons(bool *pState) {
 //   currentState = systemState::Reading; // put system to Reading state
 
 //   float sensorReading = Vernier.readSensor();
-//   delay(timeBtwnReadings); // stabilize time between readings (!!improve FUTURE maybe timer?)
 
 //   return sensorReading;
 // }
@@ -285,6 +283,11 @@ float calcPower(PMEASUREMENT p)
   return power; // Return the calculated power
 }
 
+/*
+  Function: output2Serial
+  Prints measurement data on Serial
+  Parameters: PMEASUREMENT p, pointer to measurement data structure
+ */
 void output2Serial(PMEASUREMENT p)
 {
   if (currentState == systemState::Setup) // if system is in setup mode
@@ -313,6 +316,12 @@ void output2Serial(PMEASUREMENT p)
 /*
 Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
 */
+
+/*
+  Function: motorTest
+  Deze functie laat de motor door CYCLES standen lopen. DUR_PROG_A, DUR_PROG_B
+  Parameters: enum testPrograms prog, which tesprogram to run
+ */
 void motorTest(enum testPrograms prog)
 {
 
@@ -365,28 +374,28 @@ void motorTest(enum testPrograms prog)
   Parameter: pointer to a string in a 2d
  */
 
-void LCD_show(char **str)
-{
-  unsigned char x, y; // x and y loop index
+// void LCD_show(char **str)
+// {
+//   unsigned char x, y; // x and y loop index
 
-  lcd.clear(); // clear the display
+//   lcd.clear(); // clear the display
 
-  // for each row copy textlines to dispText char arrays
-  for (y = 0; y < LCD_ROWS; y++)
-  {
-    for (x = 0; x < LCD_COLS; x++)
-    {
-      str[0][x] = rowOneLCD[x];
-      str[1][x] = rowTwoLCD[x];
-    }
-  }
-  // Display the contents of the display buffer on the LCD screen
-  for (y = 0; y < LCD_ROWS; y++, str++)
-  {
-    lcd.setCursor(0, y);
-    lcd.print(*str); // print the string buffer
-  }
-}
+//   // for each row copy textlines to dispText char arrays
+//   for (y = 0; y < LCD_ROWS; y++)
+//   {
+//     for (x = 0; x < LCD_COLS; x++)
+//     {
+//       str[0][x] = rowOneLCD[x];
+//       str[1][x] = rowTwoLCD[x];
+//     }
+//   }
+//   // Display the contents of the display buffer on the LCD screen
+//   for (y = 0; y < LCD_ROWS; y++, str++)
+//   {
+//     lcd.setCursor(0, y);
+//     lcd.print(*str); // print the string buffer
+//   }
+// }
 
 /*
   Function: userInterface
