@@ -25,7 +25,7 @@
 
 /* PIN DEFINTIONS */
 
-const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
+const uint8_t BUTTON_PINS[NUM_BUTTONS] = {6, 5, 4}; // Define ESC control pin D6 D5 D4
 Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
