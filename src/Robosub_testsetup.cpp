@@ -90,9 +90,22 @@ void handleButtons(bool *pState) {
     *pState = buttons[i].fell(); // change right value of this button state
 
     #ifdef DEBUG 
-    if (buttons[i].fell())
+    if (buttons[i].fell()) // If this button fell, print the code
     {
-        Serial.println((String)"button[" + i + "] pressed\t state: " + *pState);
+      Serial.println((String)"button[" + i + "] pressed\t state: " + *pState);
+
+      lcd.home();
+      lcd.print("button[");
+      lcd.print(i);
+      lcd.print("]:");
+      lcd.setCursor(0, 1);
+      lcd.print("state:");
+      lcd.print(*pState);
+    }
+    else if (buttons[i].rose()) // button released, clear the display
+    {
+      Serial.println((String)"button[" + i + "] released\t state: " + *pState);
+      lcd.clear();
     }
     #endif
   }
