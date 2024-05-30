@@ -1,7 +1,7 @@
 /*
  * file: Robosub_testsetup.cpp
  * Platformio code for the Robosub Arduino NANO test setup
- * SIMPlified BUTTON TEST setup
+ * SIMPLIFIED BUTTON TEST setup
  *
  * authors:
  *  Jannick Bloemendal
@@ -10,9 +10,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 29-05-2024
+ * Date: 30-05-2024
  *
- * Version: 1.6.1
+ * Version: 1.6.0
  *
  * CHANGELOG:
  *
