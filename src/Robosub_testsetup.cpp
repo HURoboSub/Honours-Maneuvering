@@ -92,7 +92,7 @@ void handleButtons(bool *pState) {
     #ifdef DEBUG 
     if (buttons[i].fell())
     {
-        Serial.println((String)"button: " + i + " pressed\t state: " + *pState);
+        Serial.println((String)"button[" + i + "] pressed\t state: " + *pState);
     }
     #endif
   }
