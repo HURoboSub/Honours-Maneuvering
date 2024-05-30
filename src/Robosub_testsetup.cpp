@@ -98,18 +98,6 @@ void handleButtons(bool *pState) {
   }
 }
 
-/*
-  Function: Reads varnier sensor and returns value
-  Parameters:
- */
-// int readVernier()
-// {
-//   currentState = systemState::Reading; // put system to Reading state
-
-//   float sensorReading = Vernier.readSensor();
-
-//   return sensorReading;
-// }
 
 
 void userInterface(systemState cState)
