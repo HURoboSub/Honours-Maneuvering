@@ -149,7 +149,7 @@ void loop()
 }
 
 /*
-  Function: Calibrate the shunt for voltage and current
+  Function: Calibrate the shunt for Voltage and Current
  */
 void Calibrate(void)
 {
@@ -158,7 +158,7 @@ void Calibrate(void)
 
   currentState = systemState::Calibrating; 
 
-  /* Amps Calibration */
+  /* Current Calibration */
   #ifdef DEBUG 
   userInterface(currentState);
   Serial.println((String)CAL_AMP + "A aansluiten");
