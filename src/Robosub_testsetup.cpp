@@ -1,6 +1,7 @@
 /*
  * file: Robosub_testsetup.cpp
  * Platformio code for the Robosub Arduino NANO test setup
+ * SIMPlified BUTTON TEST setup
  *
  * authors:
  *  Jannick Bloemendal
@@ -21,25 +22,13 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-#define CAL // Whether to calibrate shunt at the beginning 
-// #define USE_VERNIERLIB
-
-enum testPrograms testProgram = A; // default to test program A
 
 /* PIN DEFINTIONS */
-uint8_t VOLT_PIN = A0; // Define Voltage control
-uint8_t AMP_PIN = A1; // Define Amperage control
-
-uint8_t ESC_PIN = 3; // Define ESC control pin
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {4, 7, 8}; // Define ESC control pin D4 D7 D8
 Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
-
-/* ADC Calibration values */
-float ADC_V_Step = MAX_VOLT / MAX_ADC;
-float ADC_A_Step = MAX_AMP / MAX_ADC;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
@@ -47,9 +36,6 @@ char const *rowOneLCD = "               "; // const pointer to a char array cont
 char const *rowTwoLCD = "               "; // textrow one of LCD
 
 Servo esc; // Create a Servo object
-
-MEASUREMENT data;           // measurement data
-PMEASUREMENT pData = &data; // point to datastrucutre
 
 /* Timing configuration */
 unsigned long lastReadTime = 0ul;
@@ -67,11 +53,7 @@ void setup()
   userInterface(currentState); // diplay setup state on LCD
 
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
-  pinMode(ESC_PIN, OUTPUT);
-
-  pinMode(VOLT_PIN, INPUT);
-  pinMode(AMP_PIN, INPUT);
-
+  
   pinMode(BUTTON_PINS[0], INPUT_PULLUP);
   pinMode(BUTTON_PINS[1], INPUT_PULLUP);
   pinMode(BUTTON_PINS[2], INPUT_PULLUP);
@@ -83,48 +65,7 @@ void setup()
     buttons[i].interval(25);                         // debounce interval in ms
   }
 
-  // measuremunt datastructure
-  output2Serial(pData); // output header row to serial
 
-  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
-
-#ifdef USE_VERNIERLIB
-  Serial.println(Vernier.sensorName());
-  Serial.print(" ");
-  Serial.println("Readings taken using Ardunio");
-  Serial.println("Data Set");
-  Serial.print("Time"); // long name
-  Serial.print("\t");   // tab character
-  Serial.println(Vernier.sensorName());
-  Serial.print("t");  // short name
-  Serial.print("\t"); // tab character
-  Serial.println(Vernier.shortName());
-  Serial.print("seconds"); // units
-  Serial.print("\t");      // tab character
-  Serial.println(Vernier.sensorUnits());
-#endif
-
-  // motor
-  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
-  initMotor();         // Initialize the ESC
-  
-  #ifdef CAL
-  Calibrate();
-  #endif 
-
-  lcd.setCursor(0, 1);
-  lcd.print("Press Green");
-  #ifdef DEBUG 
-  Serial.println("Press Green");
-  #endif
-
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
-
-  lcd.clear(); // leeghalen lcd scherm
-  lcd.home();
 }
 
 void loop()
@@ -132,90 +73,6 @@ void loop()
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  // pData->force = readVernier();
-  calcPower(pData);
-  motorTest(testProgram);
-  output2Serial(pData);
-}
-
-void Calibrate()
-{
-
-  uint16_t ADCval;
-  char *floatString = "                ";
-
-  currentState = systemState::Calibrating; 
-  /* Amps Calibration */
-  #ifdef DEBUG 
-  userInterface(currentState);
-  Serial.println((String)CAL_AMP + "A aansluiten");
-  #endif
-
-  lcd.clear();
-  lcd.home();
-  lcd.print((String)CAL_AMP + "A aansluiten");
-
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
-
-  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-    ADCval += analogRead(AMP_PIN); // 10x meten, gemiddelde pakken
-
-  ADCval /= NUM_ADC_READINGS;
-
-  ADC_A_Step = CAL_AMP / ADCval;
-
-  /* Voltage Calibration */
-  lcd.clear();
-  lcd.home();
-
-  dtostrf(ADC_A_Step, 2, 6, floatString);
-  #ifdef DEBUG 
-  Serial.println((String)"ADC_A_Step: " + floatString + " A/Step" );
-  #endif
-  lcd.print(floatString);
-  lcd.print(" A/Step");
-  lcd.setCursor(0, 1);
-
-  #ifdef DEBUG 
-  Serial.println((String) + CAL_VOLT + "V aansluiten");
-  #endif
-
-  lcd.print((String)CAL_VOLT + "V aansluiten");
-
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
-
-  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-    ADCval += analogRead(VOLT_PIN); // 10x meten, gemiddelde pakken
-
-  ADCval /= NUM_ADC_READINGS;
-
-  ADC_V_Step = CAL_VOLT / ADCval;
-
-  lcd.clear();
-  lcd.home();
-
-  dtostrf(ADC_V_Step, 2, 6, floatString);
-  #ifdef DEBUG 
-  Serial.println((String)"ADC_V_Step: " + floatString + " V/Step");
-  #endif
-  lcd.print(floatString);
-  lcd.print(" V/Step");
-}
-
-/*
-  Function:
-  Parameters:
- */
-void initMotor()
-{
-  esc.writeMicroseconds(1000); // Send a signal to the ESC to arm it
-  delay(1000);
 }
 
 /*
@@ -254,154 +111,6 @@ void handleButtons(bool *pState) {
 //   return sensorReading;
 // }
 
-/*
-  Function: calcPower
-  Calculate power based on voltage and current measurements
-  Parameters: PMEASUREMENT p, pointer to measurement data structure
- */
-float calcPower(PMEASUREMENT p)
-{
-  float power = 0; // Initialize power variable
-  int ampVal = 0;  // Initialize analog value for current
-  int voltVal = 0; // Initialize analog value for voltage
-
-  currentState = systemState::Reading; // put system to Reading state
-  userInterface(currentState);
-
-  // Read analog values from pins
-  voltVal = analogRead(VOLT_PIN); // Read voltage value
-  ampVal = analogRead(AMP_PIN);   // Read current value
-
-  // Convert analog values to actual voltage and current
-  p->voltage = (voltVal * ADC_V_Step); // Calculate voltage in volts
-  p->current = (ampVal * ADC_A_Step);  // Calculate current in amperes
-
-  power = p->voltage * p->current; // Calculate power using the formula: power = voltage * current
-
-  p->power = power; // Store calculated power in the measurement structure
-
-  return power; // Return the calculated power
-}
-
-/*
-  Function: output2Serial
-  Prints measurement data on Serial
-  Parameters: PMEASUREMENT p, pointer to measurement data structure
- */
-void output2Serial(PMEASUREMENT p)
-{
-  if (currentState == systemState::Setup) // if system is in setup mode
-  {
-    currentState = systemState::Output; // put system to Output state
-
-    Serial.println("time (ms), force (N), voltage (V), current (mA), power (W)"); // print header row
-  }
-  else // print data
-  {
-    currentState = systemState::Output; // put system to Output state
-    userInterface(currentState);
-
-    Serial.print(millis() - lastReadTime);
-    Serial.print(",");
-    Serial.print(p->force);
-    Serial.print(",");
-    Serial.print(p->voltage, 2);
-    Serial.print(",");
-    Serial.print(p->current, 2);
-    Serial.print(",");
-    Serial.println(p->power, 2);
-  }
-}
-
-/*
-Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
-*/
-
-/*
-  Function: motorTest
-  Deze functie laat de motor door CYCLES standen lopen. DUR_PROG_A, DUR_PROG_B
-  Parameters: enum testPrograms prog, which tesprogram to run
- */
-void motorTest(enum testPrograms prog)
-{
-
-  uint8_t i;
-  uint8_t thrust = 50;
-
-  currentState = systemState::Testing; // put system to Testing state
-  userInterface(currentState);
-  
-  switch (prog)
-  {
-  case A:
-    /* Testprogramma A continuous
-          Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    for (i = 0; i == CYCLES; i++)
-    {
-      thrust = thrust + i;
-      esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-      delay(DUR_PROG_A);
-    }
-    esc.writeMicroseconds(MINIMUM_THRUST);
-
-    break;
-
-  case B:
-    /* Testprogramma B ladder
-       Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
-     */
-    for (i = 0; i <= STEPS; i++)
-    {
-      esc.writeMicroseconds(MINIMUM_THRUST + thrust);
-      delay(DUR_PROG_B);
-      thrust = thrust + THRUST_LADDER;
-    }
-    esc.writeMicroseconds(MINIMUM_THRUST);
-
-    break;
-
-  default:
-#ifdef DEBUG
-    Serial.println("Verkeerd motor test programma doorgegeven");
-#endif
-    break;
-  }
-}
-
-/*
-  Function: LCD_show
-    Handles the lcd display (clear, cursor and print) based on LCD_ROWS and LCD_COLS
-  Parameter: pointer to a string in a 2d
- */
-
-// void LCD_show(char **str)
-// {
-//   unsigned char x, y; // x and y loop index
-
-//   lcd.clear(); // clear the display
-
-//   // for each row copy textlines to dispText char arrays
-//   for (y = 0; y < LCD_ROWS; y++)
-//   {
-//     for (x = 0; x < LCD_COLS; x++)
-//     {
-//       str[0][x] = rowOneLCD[x];
-//       str[1][x] = rowTwoLCD[x];
-//     }
-//   }
-//   // Display the contents of the display buffer on the LCD screen
-//   for (y = 0; y < LCD_ROWS; y++, str++)
-//   {
-//     lcd.setCursor(0, y);
-//     lcd.print(*str); // print the string buffer
-//   }
-// }
-
-/*
-  Function: userInterface
-    Handles different system states on the LCD screen
-    Parameters: class enumator with the current State
- */
 
 void userInterface(systemState cState)
 {
