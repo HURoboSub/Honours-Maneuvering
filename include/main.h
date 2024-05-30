@@ -11,7 +11,6 @@
  * Hogeschool Utrecht
  * Date: 29-04-2024
  *
- * Version: 1.1.0
  *
  * CHANGELOG:
  *
@@ -26,6 +25,7 @@
 #include <Wire.h>       // Two Wire Interface Bus (I2C)
 #include <LiquidCrystal_I2C.h> // LCD i2c screen
 #include <Servo.h>      // Servo motor library
+#include <TimerEvent.h> // Timer Event Library to use interrupt timer for motor PWM
 #include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 
 /* buttons */
@@ -35,9 +35,11 @@
 #define CYCLES 500
 #define STEPS 9
 #define MINIMUM_THRUST 1500
+#define MAXIMUM_THRUST 2000
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
 #define DUR_PROG_B 10000
+#define DUR_PROG_C 3000
 #define THRUST_LADDER 50
 
 /* Measurement ADC configuration */
@@ -79,12 +81,18 @@ enum class systemState {
 enum testPrograms // Motor test programm
 {
     A, // Continuos
-    B  // Ladder
+    B, // Ladder
+    C  // Ramp?
 }; 
 
 void Calibrate(); // Calibrate the shunts voltage and current
+
 void initMotor(); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
+void prog_a_timer_handler(void);
+void prog_b_timer_handler(void);
+void prog_c_timer_handler(void);
+
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 int readVernier(); // read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
