@@ -142,7 +142,7 @@ void Calibrate()
 {
 
   uint16_t ADCval;
-  char *floatString = "                ";
+  char strBuf[16];
 
   currentState = systemState::Calibrating; 
   /* Amps Calibration */
@@ -171,11 +171,11 @@ void Calibrate()
   lcd.clear();
   lcd.home();
 
-  dtostrf(ADC_A_Step, 2, 6, floatString);
+  dtostrf(ADC_A_Step, 2, 6, strBuf);
   #ifdef DEBUG 
-  Serial.println((String)"ADC_A_Step: " + floatString + " A/Step" );
+  Serial.println((String)"ADC_A_Step: " + strBuf + " A/Step" );
   #endif
-  lcd.print(floatString);
+  lcd.print(strBuf);
   lcd.print(" A/Step");
   lcd.setCursor(0, 1);
 
@@ -200,11 +200,11 @@ void Calibrate()
   lcd.clear();
   lcd.home();
 
-  dtostrf(ADC_V_Step, 2, 6, floatString);
+  dtostrf(ADC_V_Step, 2, 6, strBuf);
   #ifdef DEBUG 
-  Serial.println((String)"ADC_V_Step: " + floatString + " V/Step");
+  Serial.println((String)"ADC_V_Step: " + strBuf + " V/Step");
   #endif
-  lcd.print(floatString);
+  lcd.print(strBuf);
   lcd.print(" V/Step");
 }
 
