@@ -21,10 +21,10 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-#define CAL // Whether to calibrate shunt at the beginning 
+// #define CAL // Whether to calibrate shunt at the beginning 
 // #define USE_VERNIERLIB
 
-enum testPrograms testProgram = A; // default to test program A
+enum testPrograms testProgram = B; // default to test program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
@@ -98,29 +98,9 @@ void setup()
 
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
 
-#ifdef USE_VERNIERLIB
-  Serial.println(Vernier.sensorName());
-  Serial.print(" ");
-  Serial.println("Readings taken using Ardunio");
-  Serial.println("Data Set");
-  Serial.print("Time"); // long name
-  Serial.print("\t");   // tab character
-  Serial.println(Vernier.sensorName());
-  Serial.print("t");  // short name
-  Serial.print("\t"); // tab character
-  Serial.println(Vernier.shortName());
-  Serial.print("seconds"); // units
-  Serial.print("\t");      // tab character
-  Serial.println(Vernier.sensorUnits());
-#endif
-
-  // motor
-  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
-  initMotor();         // Initialize the ESC
   
   #ifdef CAL
   Calibrate();
-  #endif 
 
   lcd.setCursor(0, 1);
   lcd.print("Press Green");
@@ -135,6 +115,11 @@ void setup()
 
   lcd.clear(); // leeghalen lcd scherm
   lcd.home();
+  #endif 
+
+  // motor
+  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
+  initMotor();         // Initialize the ESC
 }
 
 void loop()
@@ -143,9 +128,9 @@ void loop()
   handleButtons(pButtonStates);
 
   // pData->force = readVernier();
-  calcPower(pData);
+  // calcPower(pData);
   motorTest(testProgram);
-  output2Serial(pData);
+  // output2Serial(pData);
 }
 
 /*
@@ -229,8 +214,8 @@ void Calibrate(void)
  */
 void initMotor()
 {
-  esc.writeMicroseconds(1000); // Send a signal to the ESC to arm it
-  delay(1000);
+  esc.writeMicroseconds(MINIMUM_THRUST); // Send a signal to the ESC to arm it
+  delay(3000);
 }
 
 /*
@@ -345,45 +330,76 @@ void motorTest(enum testPrograms prog)
   uint8_t thrust = 50;
 
   currentState = systemState::Testing; // put system to Testing 
+  #ifdef DEBUG
+  Serial.println("Testing motor");
+  #endif
 
   switch (prog)
   {
   case A:
-    timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
-    /* Testprogramma A continuous
-          Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    continuous_motor_test = true;  
-    while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
+    // andere kant op (met de klok mee)
+    esc.writeMicroseconds(1500);
+    delay(5000);
+    for (int i = MINIMUM_THRUST; i > 1000 ; i-=1)
     {
-        timer_motor_test_a.update();  // Update the timer 
-        // Put the vernier sensor read func here (can be another timer if needed)
-        if(timer_expired >= CYCLES )  // Check if the loop has been played 500 times
-        {
-          continuous_motor_test = false;  // Set the bool to false to stop the while loop
-          timer_expired = 0;  // Reset timer_expired
-          esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
-        }
+      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
+      #ifdef DEBUG
+      Serial.println((String)"thrust:"+ i);
+      #endif
+      delay(20);
     }
+
+    // timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
+    // /* Testprogramma A continuous
+    //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
+    // continuous_motor_test = true;  
+    // while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
+    // {
+    //     timer_motor_test_a.update();  // Update the timer 
+    //     // Put the vernier sensor read func here (can be another timer if needed)
+    //     if(timer_expired >= CYCLES )  // Check if the loop has been played 500 times
+    //     {
+    //       continuous_motor_test = false;  // Set the bool to false to stop the while loop
+    //       timer_expired = 0;  // Reset timer_expired
+    //       esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
+    //     }
+    // }
 
     break;
 
   case B:
-   timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
-    /* Testprogramma B ladder 
-       Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
-     */
-    continuous_motor_test = true;
-    while(continuous_motor_test)  // While loop gets played as long as continuous_motor_test is true
+  //  timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
+  //   /* Testprogramma B ladder 
+  //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
+  //    */
+  //   continuous_motor_test = true;
+  //   while(continuous_motor_test)  // While loop gets played as long as continuous_motor_test is true
+  //   {
+  //       timer_motor_test_b.update();  // Update the timer
+  //       // Put the vernier sensor read func here (can be another timer if needed)
+  //       #ifdef DEBUG
+  //         Serial.println("in testprogramma B");
+  //       #endif
+  //       if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
+  //       {
+  //         continuous_motor_test = false;  //Set bool to false to stop loop
+  //         timer_expired = 0;  // Reset timer_expired
+  //         esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
+  //       }
+  //   }
+    // draai tegen de klok in
+    esc.writeMicroseconds(1500);
+    delay(5000);
+
+    for (int i = MINIMUM_THRUST; i < MAXIMUM_THRUST ; i+=1)
     {
-        timer_motor_test_b.update();  // Update the timer
-        // Put the vernier sensor read func here (can be another timer if needed)
-        if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
-        {
-          continuous_motor_test = false;  //Set bool to false to stop loop
-          timer_expired = 0;  // Reset timer_expired
-          esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
-        }
+      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
+      #ifdef DEBUG
+      Serial.println((String)"thrust:"+ i);
+      #endif
+      delay(20);
     }
+  
     break;
 
     case C:
@@ -419,36 +435,36 @@ void prog_a_timer_handler(void)
   uint8_t i;
   uint8_t thrust = 50;
 
-        thrust = thrust + 1;  	                        // Ramp the thrust up with one
-        esc.writeMicroseconds(MINIMUM_THRUST + thrust); // Set motor to 1500+ thrust
+  thrust = thrust + 1;                            // Ramp the thrust up with one
+  esc.writeMicroseconds(MINIMUM_THRUST + thrust); // Set motor to 1500+ thrust
 
-        timer_expired += 1;                             // Add one to timer_expired
+  timer_expired += 1; // Add one to timer_expired
 }
 
 /*
   Function: prog_b_timer_handler
-    
+
   Parameters: void
 */
 void prog_b_timer_handler(void)
 {
   uint8_t i;
   uint8_t thrust = 50;
-  
-    esc.writeMicroseconds(MINIMUM_THRUST + thrust);     // Set motor to 1500 + thrust
-    thrust = thrust + THRUST_LADDER;                    // Add 50 to thrust 
-    timer_expired += 1;                                 // Add one to timer_expired
+
+  esc.writeMicroseconds(MINIMUM_THRUST + thrust); // Set motor to 1500 + thrust
+  thrust = thrust + THRUST_LADDER;                // Add 50 to thrust
+  timer_expired += 1;                             // Add one to timer_expired
 }
 
 /*
   Function: prog_c_timer_handler
-    
+
   Parameters: void
 */
 void prog_c_timer_handler(void)
-{ 
-    esc.writeMicroseconds(MAXIMUM_THRUST);              // Set motor to 2000
-    timer_expired += 1;                                 // Add one to timer_expired
+{
+  esc.writeMicroseconds(MAXIMUM_THRUST); // Set motor to 2000
+  timer_expired += 1;                    // Add one to timer_expired
 }
 
 /*

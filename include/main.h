@@ -34,13 +34,13 @@
 /* MOTOR test parameters */
 #define CYCLES 500
 #define STEPS 9
-#define MINIMUM_THRUST 1500
-#define MAXIMUM_THRUST 2000
+#define MINIMUM_THRUST 1500 // rest thrust
+#define MAXIMUM_THRUST 2250
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
 #define DUR_PROG_B 10000
 #define DUR_PROG_C 3000
-#define THRUST_LADDER 50
+#define THRUST_LADDER 20
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
