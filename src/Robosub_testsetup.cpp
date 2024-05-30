@@ -148,73 +148,78 @@ void loop()
   output2Serial(pData);
 }
 
-void Calibrate()
+/*
+  Function: Calibrate the shunt for Voltage and Current
+ */
+void Calibrate(void)
 {
-
   uint16_t ADCval;
-  char *floatString = "                ";
+  char strBuf[8]; // convert calculated ADC Step (float) to char-array for printing
 
   currentState = systemState::Calibrating; 
-  /* Amps Calibration */
+
+  /* Current Calibration */
   #ifdef DEBUG 
   userInterface(currentState);
   Serial.println((String)CAL_AMP + "A aansluiten");
   #endif
 
   lcd.clear();
-  lcd.home();
-  lcd.print((String)CAL_AMP + "A aansluiten");
+  lcd.home(); // LCD cursor to 0,0
+  lcd.print((String)CAL_AMP + "A aansluiten");  // Show instruction on 1 LCD-row
 
   do
   {
     handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
+  } while (buttonStates[0] == false); // Wait until most left button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-    ADCval += analogRead(AMP_PIN); // 10x meten, gemiddelde pakken
+    ADCval += analogRead(AMP_PIN); // Read AMP_PIN NUM_ADC_READINGS times and sum it
 
-  ADCval /= NUM_ADC_READINGS;
+  ADCval /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  ADC_A_Step = CAL_AMP / ADCval;
+  ADC_A_Step = CAL_AMP / ADCval; // Calculate amount of current per ADC-value step
+
+  dtostrf(ADC_A_Step, 2, 5, strBuf); // Convert float to char-array 
+  
+  #ifdef DEBUG 
+  Serial.println((String)"ADC_A_Step: " + strBuf + " A/Step" );
+  #endif
+  
+  lcd.clear(); // Show calculated current step on LCD
+  lcd.home(); // LCD cursor to 0,0
+  lcd.print(strBuf);
+  lcd.print(" A/Step");
 
   /* Voltage Calibration */
-  lcd.clear();
-  lcd.home();
-
-  dtostrf(ADC_A_Step, 2, 6, floatString);
-  #ifdef DEBUG 
-  Serial.println((String)"ADC_A_Step: " + floatString + " A/Step" );
-  #endif
-  lcd.print(floatString);
-  lcd.print(" A/Step");
-  lcd.setCursor(0, 1);
-
   #ifdef DEBUG 
   Serial.println((String) + CAL_VOLT + "V aansluiten");
   #endif
 
-  lcd.print((String)CAL_VOLT + "V aansluiten");
+  lcd.setCursor(0, 1); // LCD cursor to row 2
+  lcd.print((String)CAL_VOLT + "V aansluiten"); // Show instruction on 2nd LCD-row
 
   do
   {
     handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // wachten totdat de meest linker button is ingedrukt geweest
+  } while (buttonStates[0] == false); // Wait until most left button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-    ADCval += analogRead(VOLT_PIN); // 10x meten, gemiddelde pakken
+    ADCval += analogRead(VOLT_PIN); // Read VOLT_PIN NUM_ADC_READINGS times and sum it
 
-  ADCval /= NUM_ADC_READINGS;
+  ADCval /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  ADC_V_Step = CAL_VOLT / ADCval;
+  ADC_V_Step = CAL_VOLT / ADCval; // Calculate amount of current per ADC-value step
 
-  lcd.clear();
-  lcd.home();
-
-  dtostrf(ADC_V_Step, 2, 6, floatString);
-  #ifdef DEBUG 
-  Serial.println((String)"ADC_V_Step: " + floatString + " V/Step");
+  dtostrf(ADC_V_Step, 2, 5, strBuf); // Convert float to char-array 
+  
+  #ifdef DEBUG
+  Serial.println((String)"ADC_V_Step: " + strBuf + " V/Step");
   #endif
-  lcd.print(floatString);
+
+  lcd.clear(); // Show calculated voltage step on LCD
+  lcd.home();
+  lcd.print(strBuf);
   lcd.print(" V/Step");
 }
 

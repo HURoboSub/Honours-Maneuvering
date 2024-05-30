@@ -85,9 +85,9 @@ enum testPrograms // Motor test programm
     C  // Ramp?
 }; 
 
-void Calibrate(); // Calibrate the shunts voltage and current
+void Calibrate(void); // Calibrate the shunt for voltage and current
 
-void initMotor(); // Initialise motor
+void initMotor(void); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
 void prog_b_timer_handler(void);
