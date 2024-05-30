@@ -142,7 +142,7 @@ void Calibrate()
 {
 
   uint16_t ADCval;
-  char strBuf[16];
+  char strBuf[8]; // convert calculated ADC Step (float) to char-array for printing
 
   currentState = systemState::Calibrating; 
   /* Amps Calibration */
@@ -171,7 +171,7 @@ void Calibrate()
   lcd.clear();
   lcd.home();
 
-  dtostrf(ADC_A_Step, 2, 6, strBuf);
+  dtostrf(ADC_A_Step, 2, 5, strBuf);
   #ifdef DEBUG 
   Serial.println((String)"ADC_A_Step: " + strBuf + " A/Step" );
   #endif
@@ -200,7 +200,7 @@ void Calibrate()
   lcd.clear();
   lcd.home();
 
-  dtostrf(ADC_V_Step, 2, 6, strBuf);
+  dtostrf(ADC_V_Step, 2, 5, strBuf);
   #ifdef DEBUG 
   Serial.println((String)"ADC_V_Step: " + strBuf + " V/Step");
   #endif
