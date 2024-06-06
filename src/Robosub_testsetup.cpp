@@ -21,12 +21,8 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-<<<<<<< HEAD
 #define CAL // Whether to calibrate shunt at the beginning 
 #define LCD 0
-=======
-// #define CAL // Whether to calibrate shunt at the beginning 
->>>>>>> origin/main
 // #define USE_VERNIERLIB
 
 enum testPrograms testProgram = B; // default to test program A
@@ -122,14 +118,8 @@ void setup()
   lcd.clear(); // leeghalen lcd scherm
   lcd.home();
   #endif 
-<<<<<<< HEAD
   
   // motor
-=======
-
-  // motor
-  esc.attach(ESC_PIN); // Attach the ESC to the specified pin
->>>>>>> origin/main
   initMotor();         // Initialize the ESC
 }
 
@@ -225,16 +215,11 @@ void Calibrate(void)
  */
 void initMotor()
 {
-<<<<<<< HEAD
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   delay(20);
   
   esc.writeMicroseconds(MTR_NEUTRAL); // Send a signal to the ESC to arm it
   delay(MTR_STARTUP_DELAY_MS);
-=======
-  esc.writeMicroseconds(MINIMUM_THRUST); // Send a signal to the ESC to arm it
-  delay(3000);
->>>>>>> origin/main
 }
 
 /*
