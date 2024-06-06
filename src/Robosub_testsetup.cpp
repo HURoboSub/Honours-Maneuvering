@@ -22,6 +22,7 @@
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
 #define CAL // Whether to calibrate shunt at the beginning 
+#define LCD 0
 // #define USE_VERNIERLIB
 
 enum testPrograms testProgram = A; // default to test program A
@@ -120,12 +121,12 @@ void setup()
   
   #ifdef CAL
   Calibrate();
-  #endif 
 
   lcd.setCursor(0, 1);
+
   lcd.print("Press Green");
   #ifdef DEBUG 
-  Serial.println("Press Green");
+    Serial.println("Press Green");
   #endif
 
   do
@@ -136,9 +137,8 @@ void setup()
   lcd.clear(); // leeghalen lcd scherm
   lcd.home();
   #endif 
-
+  
   // motor
-
   initMotor();         // Initialize the ESC
 }
 
@@ -344,7 +344,7 @@ Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intota
 void motorTest(enum testPrograms prog)
 {
 
-  uint8_t i;
+  int i;
   uint8_t thrust = 50;
 
   currentState = systemState::Testing; // put system to Testing 
@@ -370,7 +370,7 @@ void motorTest(enum testPrograms prog)
     // andere kant op (met de klok mee)
     // initMotor(); // first re-intitilias motor?
 
-    for (int i = MTR_NEUTRAL; i > MTR_MIN_CLOCKWISE ; i-=1)
+    for (i = MTR_NEUTRAL; i > MTR_MIN_CLOCKWISE ; i-=1)
     {
       esc.writeMicroseconds(i);  // Set the motor to 0 RPM
 
@@ -405,7 +405,7 @@ void motorTest(enum testPrograms prog)
 
     // voor nu draai tegen de klok in
     // initMotor(); // first re-int
-    for (int i = MTR_NEUTRAL; i < MTR_MIN_CLOCKWISE ; i+=1)
+    for (i = MTR_NEUTRAL; i < MTR_MIN_CLOCKWISE ; i+=1)
     {
       esc.writeMicroseconds(i);  // Set the motor to 0 RPM
 
@@ -448,7 +448,6 @@ void motorTest(enum testPrograms prog)
 */
 void prog_a_timer_handler(void)
 {
-  uint8_t i;
   uint8_t thrust = 50;
 
   thrust = thrust + 1;                            // Ramp the thrust up with one
@@ -464,7 +463,6 @@ void prog_a_timer_handler(void)
 */
 void prog_b_timer_handler(void)
 {
-  uint8_t i;
   uint8_t thrust = 50;
   
     esc.writeMicroseconds(MTR_NEUTRAL + thrust);     // Set motor to 1500 + thrust
