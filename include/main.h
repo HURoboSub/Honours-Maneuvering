@@ -114,37 +114,6 @@ enum testPrograms // Motor test programm
     C  // Ramp?
 }; 
 
-// enumator for the motor state
-typedef enum {
-    Neutral,  // esc 1500
-    Adding,  // esc 1500 + x
-    Hold,   // tel to 1 seconden
-    Subtracting, // thrust --
-} motorState_t; // class storing the current system state
-
-motorState_t motorState = Neutral;
-
-switch (motorState)
-{
-case Neutral:
-    /* code */
-    break;
-case Adding:
-    /* code */
-    break;
-
-case Hold:
-    /* code */
-    break;
-
-case Subtracting:
-    /* code */
-    break;
-
-default:
-    break;
-}
-
 void Calibrate(void); // Calibrate the shunt for voltage and current
 
 void initMotor(void); // Initialise motor
