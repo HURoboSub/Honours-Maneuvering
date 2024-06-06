@@ -32,13 +32,8 @@
 #define NUM_BUTTONS 3
 
 /* MOTOR test parameters */
-<<<<<<< HEAD
-#define CYCLES 500
-#define STEPS 9
-=======
 #define CYCLES 350
 #define STEPS 16
->>>>>>> origin/main
 
 #define MTR_STARTUP_DELAY_MS 5000
 
@@ -52,10 +47,7 @@
 #define DUR_PROG_A 20
 #define DUR_PROG_B 1000
 #define DUR_PROG_C 3000
-<<<<<<< HEAD
-=======
 #define WAIT_TIME 50
->>>>>>> origin/main
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023

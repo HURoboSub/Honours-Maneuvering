@@ -21,11 +21,8 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-<<<<<<< HEAD
-#define CAL // Whether to calibrate shunt at the beginning 
-=======
+#define DEBUG_MOTOR
 // #define CAL // Whether to calibrate shunt at the beginning 
->>>>>>> origin/main
 #define LCD 0
 // #define USE_VERNIERLIB
 
@@ -116,39 +113,15 @@ void setup()
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
   #ifdef CAL
   CalibrateVernier();
-  
   Calibrate();
   
   #endif /* CAL */
   
   // measuremunt datastructure
   output2Serial(pData); // output header row to serial
-<<<<<<< HEAD
-=======
 
   // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
 
-  
-  #ifdef CAL
-  Calibrate();
-
-  lcd.setCursor(0, 1);
-
-  lcd.print("Press Green");
-  #ifdef DEBUG 
-    Serial.println("Press Green");
-  #endif
-
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
-
-  lcd.clear(); // leeghalen lcd scherm
-  lcd.home();
-  #endif 
-  
->>>>>>> origin/main
   // motor
   initMotor();         // Initialize the ESC
 }
@@ -238,7 +211,8 @@ void Calibrate(void)
   lcd.print(strBuf);
   lcd.print(" V/Step");
 
-  delay(1000);
+  delay(1000); 
+  // finished wait for press yellow
   lcd.setCursor(0, 1);
 
   lcd.print("Press yellow");
