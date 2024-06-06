@@ -26,7 +26,7 @@
 #define LCD 0
 // #define USE_VERNIERLIB
 
-enum testPrograms testProgram = A; // default to test program A
+enum testPrograms testProgram = B; // default to test program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
@@ -114,7 +114,6 @@ void setup()
   #ifdef CAL
   CalibrateVernier();
   Calibrate();
-  
   #endif /* CAL */
   
   // measuremunt datastructure
@@ -131,8 +130,7 @@ void loop()
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  pData->force = readVernier();
-  // calcPower(pData);
+  // pData->force = readVernier();
   motorTest(testProgram);
   // output2Serial(pData);
 }
@@ -417,9 +415,6 @@ void motorTest(enum testPrograms prog)
   switch (prog)
   {
   case A:
-
-
-    // TIMER APPROACH
     timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     continuous_motor_test = true;  
@@ -427,7 +422,9 @@ void motorTest(enum testPrograms prog)
     {
         timer_motor_test_a.update();  // Update the timer 
         // Put the vernier sensor read func here (can be another timer if needed)
-        // pData -> force = readVernier();
+        pData-> force = readVernier();
+        calcPower(pData);
+
         #ifdef DEBUG
         Serial.println("Code next to timer");
         #endif
@@ -443,6 +440,9 @@ void motorTest(enum testPrograms prog)
 
   case B:
   /* Testprogramma B LADDER */
+  #ifdef DEBUG
+    Serial.println("in testprogramma B");
+  #endif
    timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
   //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
   //    */
@@ -451,9 +451,9 @@ void motorTest(enum testPrograms prog)
     {
         timer_motor_test_b.update();  // Update the timer
         // Put the vernier sensor read func here (can be another timer if needed)
-        #ifdef DEBUG
-          Serial.println("in testprogramma B");
-        #endif
+        pData-> force = readVernier();
+        calcPower(pData);
+        
         if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
         {
           continuous_motor_test = false;  //Set bool to false to stop loop
