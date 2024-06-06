@@ -34,7 +34,6 @@
 /* MOTOR test parameters */
 #define CYCLES 500
 #define STEPS 9
-<<<<<<< HEAD
 
 #define MTR_STARTUP_DELAY_MS 5000
 
@@ -44,18 +43,10 @@
 
 #define MRT_INCREMENT 2 // how much the micros should increase each time
 
-=======
-#define MINIMUM_THRUST 1500 // rest thrust
-#define MAXIMUM_THRUST 2250
->>>>>>> origin/main
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
 #define DUR_PROG_B 10000
 #define DUR_PROG_C 3000
-<<<<<<< HEAD
-=======
-#define THRUST_LADDER 20
->>>>>>> origin/main
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
@@ -99,6 +90,37 @@ enum testPrograms // Motor test programm
     B, // Ladder
     C  // Ramp?
 }; 
+
+// enumator for the motor state
+typedef enum {
+    Neutral,  // esc 1500
+    Adding,  // esc 1500 + x
+    Hold,   // tel to 1 seconden
+    Subtracting, // thrust --
+} motorState_t; // class storing the current system state
+
+motorState_t motorState = Neutral;
+
+switch (motorState)
+{
+case Neutral:
+    /* code */
+    break;
+case Adding:
+    /* code */
+    break;
+
+case Hold:
+    /* code */
+    break;
+
+case Subtracting:
+    /* code */
+    break;
+
+default:
+    break;
+}
 
 void Calibrate(void); // Calibrate the shunt for voltage and current
 
