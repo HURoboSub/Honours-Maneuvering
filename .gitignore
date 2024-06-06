@@ -438,7 +438,7 @@ FodyWeavers.xsd
 .piolibdeps
 .clang_complete
 .gcc-flags.json
-.pio
+.pio/*
 
 # # STM32ide specific
 .metadata/**

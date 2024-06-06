@@ -338,9 +338,6 @@ Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intota
 void motorTest(enum testPrograms prog)
 {
   currentState = systemState::Testing; // put system to Testing 
-  #ifdef DEBUG
-  Serial.println("Testing motor");
-  #endif
 
   #ifdef DEBUG
     Serial.println((String) "Testing motorprogram:" + (int)prog);
