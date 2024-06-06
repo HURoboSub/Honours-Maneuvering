@@ -34,6 +34,7 @@
 /* MOTOR test parameters */
 #define CYCLES 500
 #define STEPS 9
+<<<<<<< HEAD
 
 #define MTR_STARTUP_DELAY_MS 5000
 
@@ -43,10 +44,18 @@
 
 #define MRT_INCREMENT 2 // how much the micros should increase each time
 
+=======
+#define MINIMUM_THRUST 1500 // rest thrust
+#define MAXIMUM_THRUST 2250
+>>>>>>> origin/main
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
 #define DUR_PROG_B 10000
 #define DUR_PROG_C 3000
+<<<<<<< HEAD
+=======
+#define THRUST_LADDER 20
+>>>>>>> origin/main
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
@@ -91,9 +100,9 @@ enum testPrograms // Motor test programm
     C  // Ramp?
 }; 
 
-void Calibrate(); // Calibrate the shunts voltage and current
+void Calibrate(void); // Calibrate the shunt for voltage and current
 
-void initMotor(); // Initialise motor
+void initMotor(void); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
 void prog_b_timer_handler(void);
