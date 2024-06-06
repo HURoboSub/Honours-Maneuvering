@@ -430,35 +430,35 @@ void motorTest(enum testPrograms prog)
 
 void prog_a_timer_handler(void)
 {
-   #ifdef DEBUG
-    Serial.println((String)"wait is at"+ wait);
-    #endif
+#ifdef DEBUG_MOTOR
+  Serial.println((String) "wait is at" + wait);
+#endif
 
-switch(motor_a)
-{
-case Neutral:
+  switch (motor_a)
+  {
+  case Neutral:
 
-    if(wait < 5)
-    esc.writeMicroseconds(MTR_NEUTRAL);
+    if (wait < 5)
+      esc.writeMicroseconds(MTR_NEUTRAL);
 
     wait += 1;
 
-    if(wait >= WAIT_TIME)
+    if (wait >= WAIT_TIME)
     {
       motor_a = Adding;
       wait = 0;
     }
     break;
-case Adding:
+  case Adding:
 
-    #ifdef DEBUG
+#ifdef DEBUG_MOTOR
     Serial.println("Reached case Adding");
-    #endif
+#endif
 
-    if(thrust_prog_a >= MTR_MAX_ANTICLOCKWISE)
+    if (thrust_prog_a >= MTR_MAX_ANTICLOCKWISE)
     {
       wait += 1;
-      if(wait >= WAIT_TIME)
+      if (wait >= WAIT_TIME)
       {
         motor_a = Subtracting;
         wait = 0;
@@ -468,23 +468,23 @@ case Adding:
     {
 
       esc.writeMicroseconds(thrust_prog_a = thrust_prog_a + 10);
-      #ifdef DEBUG
-      Serial.println((String)"thrust_prog_a = " + thrust_prog_a);
-      #endif
+#ifdef DEBUG_MOTOR
+      Serial.println((String) "thrust_prog_a = " + thrust_prog_a);
+#endif
     }
     break;
 
-case Subtracting:
+  case Subtracting:
 
-    #ifdef DEBUG
+#ifdef DEBUG_MOTOR
     Serial.println("Reached case Subtracting");
-    #endif
+#endif
 
-    if(thrust_prog_a == MTR_MIN_CLOCKWISE)
+    if (thrust_prog_a == MTR_MIN_CLOCKWISE)
     {
       wait += 1;
 
-      if(wait >= WAIT_TIME)
+      if (wait >= WAIT_TIME)
       {
         motor_a = Adding_halve;
         wait = 0;
@@ -496,17 +496,17 @@ case Subtracting:
     }
     break;
 
-case Adding_halve:
+  case Adding_halve:
 
-    #ifdef DEBUG
+#ifdef DEBUG_MOTOR
     Serial.println("Reached case Adding_halve");
-    #endif
+#endif
 
-    if(thrust_prog_a == MTR_NEUTRAL)
+    if (thrust_prog_a == MTR_NEUTRAL)
     {
       wait += 1;
 
-      if(wait >= WAIT_TIME)
+      if (wait >= WAIT_TIME)
       {
         motor_a = Subtracting;
         wait = 0;
@@ -518,10 +518,10 @@ case Adding_halve:
     }
     break;
 
-default:
+  default:
     esc.writeMicroseconds(MTR_NEUTRAL);
     break;
-}
+  }
   timer_expired = timer_expired + 1;
 }
 
@@ -532,48 +532,48 @@ default:
 */
 void prog_b_timer_handler(void)
 {
-  switch(motor_b)
+  switch (motor_b)
   {
-    case Start:
-      esc.writeMicroseconds(MTR_NEUTRAL);
-      motor_b = Upper;
-      #ifdef DEBUG
-      Serial.println((String)"thrust_prog_b = " + thrust_prog_b);
-      #endif
+  case Start:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    motor_b = Upper;
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+#endif
     break;
-    case Upper:
-      esc.writeMicroseconds(thrust_prog_b);
-      thrust_prog_b = thrust_prog_b + 50;
-
-      #ifdef DEBUG
-      Serial.println((String)"thrust_prog_b = " + thrust_prog_b);
-      #endif
-
-      if(thrust_prog_b >= MTR_MAX_ANTICLOCKWISE) 
-      {
-        motor_b = Lower;
-      }
-    break;
-    case Lower:
+  case Upper:
     esc.writeMicroseconds(thrust_prog_b);
-      thrust_prog_b = thrust_prog_b - 50;
-      #ifdef DEBUG
-      Serial.println((String)"thrust_prog_b = " + thrust_prog_b);
-      #endif
+    thrust_prog_b = thrust_prog_b + 50;
 
-      if(thrust_prog_b <= MTR_MIN_CLOCKWISE) 
-      {
-        motor_b = Default;
-      }
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+#endif
+
+    if (thrust_prog_b >= MTR_MAX_ANTICLOCKWISE)
+    {
+      motor_b = Lower;
+    }
     break;
-    case Default:
-      esc.writeMicroseconds(MTR_NEUTRAL);
+  case Lower:
+    esc.writeMicroseconds(thrust_prog_b);
+    thrust_prog_b = thrust_prog_b - 50;
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+#endif
+
+    if (thrust_prog_b <= MTR_MIN_CLOCKWISE)
+    {
+      motor_b = Default;
+    }
     break;
-    default:
-      esc.writeMicroseconds(MTR_NEUTRAL);
+  case Default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
     break;
   }
-    timer_expired += 1;                                 // Add one to timer_expired
+  timer_expired += 1; // Add one to timer_expired
 }
 
 /*
@@ -584,44 +584,44 @@ void prog_b_timer_handler(void)
 uint32_t i = 0;
 uint32_t thrust_prog_c = 1500;
 void prog_c_timer_handler(void)
-{ 
-  #ifdef DEBUG
-  Serial.println((String)"State = "+motor_c);
-  #endif
-    switch(motor_c)
+{
+#ifdef DEBUG_MOTOR
+  Serial.println((String) "State = " + motor_c);
+#endif
+  switch (motor_c)
+  {
+  case First:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    motor_c = Second;
+    break;
+  case Second:
+    for (i = MTR_NEUTRAL; i <= MTR_MAX_ANTICLOCKWISE; i++)
     {
-        case First:
-          esc.writeMicroseconds(MTR_NEUTRAL);
-          motor_c = Second;
-        break;
-        case Second:
-        for(i = MTR_NEUTRAL; i <= MTR_MAX_ANTICLOCKWISE; i++)
-        {
-          esc.writeMicroseconds(i);
-          delay(5);
-        }
-          motor_c = Third;
-        break;
-        case Third:
-          for(i = MTR_MAX_ANTICLOCKWISE; i <= MTR_MIN_CLOCKWISE; i--)
-        {
-          esc.writeMicroseconds(i);
-          delay(5);
-        }
-          motor_c = Fourth;
-        break;
-        case Fourth:
-          for(i = MTR_MIN_CLOCKWISE; i <= MTR_NEUTRAL; i++)
-        {
-          esc.writeMicroseconds(i);
-          delay(5);
-        }
-        default:
-          esc.writeMicroseconds(MTR_NEUTRAL);
-        break;
+      esc.writeMicroseconds(i);
+      delay(5);
     }
+    motor_c = Third;
+    break;
+  case Third:
+    for (i = MTR_MAX_ANTICLOCKWISE; i <= MTR_MIN_CLOCKWISE; i--)
+    {
+      esc.writeMicroseconds(i);
+      delay(5);
+    }
+    motor_c = Fourth;
+    break;
+  case Fourth:
+    for (i = MTR_MIN_CLOCKWISE; i <= MTR_NEUTRAL; i++)
+    {
+      esc.writeMicroseconds(i);
+      delay(5);
+    }
+  default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  }
 
-    timer_expired += 1;                                 // Add one to timer_expired
+  timer_expired += 1; // Add one to timer_expired
 }
 
 /*
