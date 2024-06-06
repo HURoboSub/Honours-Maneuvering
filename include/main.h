@@ -32,14 +32,14 @@
 #define NUM_BUTTONS 3
 
 /* MOTOR test parameters */
-#define CYCLES 500
+#define CYCLES 3150
 #define STEPS 9
 
 #define MTR_STARTUP_DELAY_MS 5000
 
 #define MTR_MIN_CLOCKWISE 1000  // µs for max speed  clockwise
 #define MTR_NEUTRAL 1500 // µs rest thrust
-#define MTR_MAX_ANTICLOCKWISE 2250 // µs for max speed anticlockwise
+#define MTR_MAX_ANTICLOCKWISE 2000 // µs for max speed anticlockwise
 
 #define MRT_INCREMENT 2 // how much the micros should increase each time
 
@@ -83,6 +83,14 @@ enum class systemState {
     Testing,     // S3
     Output       // S4
 } currentState; // class storing the current system state
+
+enum motor_state_t
+{
+    Neutral,
+    Adding,
+    Subtracting,
+    Adding_halve
+};
 
 enum testPrograms // Motor test programm
 {
