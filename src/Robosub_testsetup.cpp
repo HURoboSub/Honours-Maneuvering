@@ -101,31 +101,16 @@ void setup()
     buttons[i].interval(25);                         // debounce interval in ms
   }
 
+  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
+  #ifdef CAL
+  CalibrateVernier();
+  
+  Calibrate();
+  
+  #endif /* CAL */
+  
   // measuremunt datastructure
   output2Serial(pData); // output header row to serial
-
-  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
-
-  
-  #ifdef CAL
-  Calibrate();
-
-  lcd.setCursor(0, 1);
-
-  lcd.print("Press Green");
-  #ifdef DEBUG 
-    Serial.println("Press Green");
-  #endif
-
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
-
-  lcd.clear(); // leeghalen lcd scherm
-  lcd.home();
-  #endif 
-  
   // motor
   initMotor();         // Initialize the ESC
 }
@@ -214,6 +199,22 @@ void Calibrate(void)
   lcd.home();
   lcd.print(strBuf);
   lcd.print(" V/Step");
+
+  delay(1000);
+  lcd.setCursor(0, 1);
+
+  lcd.print("Press yellow");
+  #ifdef DEBUG 
+    Serial.println("Press yellow");
+  #endif
+
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
+
+  lcd.clear(); // leeghalen lcd scherm
+  lcd.home();
 }
 
 /*
@@ -226,9 +227,15 @@ void CalibrateVernier(void)
   float force;
   float voltage;
 
+#if defined(LCD) && (LCD == 1)
   lcd.clear();
   lcd.home();                // LCD cursor to 0,0
   lcd.print("Cal vernier!"); // Show instruction on 1 LCD-row
+#endif 
+
+#ifdef DEBUG 
+  Serial.println("Cal vernier, press green button");
+#endif 
 
   do
   {
@@ -244,7 +251,7 @@ void CalibrateVernier(void)
   VERNIER_CAL_FACTOR = readValue;
   
 #ifdef DEBUG
-  Serial.println((String) "vernier cal factor" + VERNIER_CAL_FACTOR);
+  Serial.println((String) "VERNIER_CAL_FACTOR:\t" + VERNIER_CAL_FACTOR);
 #endif
 }
 
@@ -300,12 +307,13 @@ float readVernier()
     Serial.println((String) "Reading Vernier:" + NUM_ADC_READINGS + "times");
   #endif
 
+  readValue = analogRead(VERNIER_PIN);  // single reading
+
   // for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
   //   readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
 
   // readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  readValue = analogRead(VERNIER_PIN); 
 
   readValue = VERNIER_CAL_FACTOR - readValue; // Correct VERNIER_CAL_FACTOR 
 
