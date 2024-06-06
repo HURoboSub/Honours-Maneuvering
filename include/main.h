@@ -34,13 +34,14 @@
 /* MOTOR test parameters */
 #define CYCLES 500
 #define STEPS 9
-#define MINIMUM_THRUST 1500
-#define MAXIMUM_THRUST 2000
+#define MTR_MIN_CLOCKWISE 1000  // µs for max speed  clockwise
+#define MTR_NEUTRAL 1500 // µs rest thrust
+#define MTR_MAX_ANTICLOCKWISE 2250 // µs for max speed anticlockwise
+#define MTR_STARTUP_DELAY_MS 5000
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
 #define DUR_PROG_B 10000
 #define DUR_PROG_C 3000
-#define THRUST_LADDER 50
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
