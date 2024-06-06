@@ -348,14 +348,10 @@ void motorTest(enum testPrograms prog)
   int i;
   uint8_t thrust = 50;
 
-<<<<<<< HEAD
-  currentState = systemState::Testing; // put system to Testing
-=======
   currentState = systemState::Testing; // put system to Testing 
   #ifdef DEBUG
   Serial.println("Testing motor");
   #endif
->>>>>>> origin/main
 
   #ifdef DEBUG
     Serial.println((String) "Testing motorprogram:" + (int)prog);
@@ -364,28 +360,18 @@ void motorTest(enum testPrograms prog)
   switch (prog)
   {
   case A:
-<<<<<<< HEAD
     /* Testprogramma A continuous */
     // clockwise
     for (i = MTR_NEUTRAL; i > MTR_MIN_CLOCKWISE ; i-= MRT_INCREMENT)
     {
       esc.writeMicroseconds(i);  // Set the motor to 0 RPM
 
-=======
-    // andere kant op (met de klok mee)
-    esc.writeMicroseconds(1500);
-    delay(5000);
-    for (int i = MINIMUM_THRUST; i > 1000 ; i-=1)
-    {
-      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
->>>>>>> origin/main
       #ifdef DEBUG
       Serial.println((String)"thrust:"+ i);
       #endif
       delay(20);
     }
 
-<<<<<<< HEAD
     #ifdef DEBUG
     Serial.println("Reached full clockwise speed:");
     #endif
@@ -407,10 +393,6 @@ void motorTest(enum testPrograms prog)
 
     // TIMER APPROACH
     // timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
-=======
-    // timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
-    // /* Testprogramma A continuous
->>>>>>> origin/main
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     // continuous_motor_test = true;  
     // while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
@@ -421,7 +403,6 @@ void motorTest(enum testPrograms prog)
     //     {
     //       continuous_motor_test = false;  // Set the bool to false to stop the while loop
     //       timer_expired = 0;  // Reset timer_expired
-<<<<<<< HEAD
     //       esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
     //     }
     // initMotor(); // first re-intitilias motor?
@@ -431,17 +412,6 @@ void motorTest(enum testPrograms prog)
   case B:
   /* Testprogramma B LADDER */
   //  timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
-=======
-    //       esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
-    //     }
-    // }
-
-    break;
-
-  case B:
-  //  timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
-  //   /* Testprogramma B ladder 
->>>>>>> origin/main
   //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
   //    */
   //   continuous_motor_test = true;
@@ -456,30 +426,10 @@ void motorTest(enum testPrograms prog)
   //       {
   //         continuous_motor_test = false;  //Set bool to false to stop loop
   //         timer_expired = 0;  // Reset timer_expired
-<<<<<<< HEAD
   //         esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
   //       }
   //   }
   break; /* Program B */
-=======
-  //         esc.writeMicroseconds(MINIMUM_THRUST);  // Set the motor to 0 RPM
-  //       }
-  //   }
-    // draai tegen de klok in
-    esc.writeMicroseconds(1500);
-    delay(5000);
-
-    for (int i = MINIMUM_THRUST; i < MAXIMUM_THRUST ; i+=1)
-    {
-      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
-      #ifdef DEBUG
-      Serial.println((String)"thrust:"+ i);
-      #endif
-      delay(20);
-    }
-  
-    break;
->>>>>>> origin/main
 
   case C:
     /*Testprogramma C Ramp
@@ -516,11 +466,7 @@ void prog_a_timer_handler(void)
   uint8_t thrust = 50;
 
   thrust = thrust + 1;                            // Ramp the thrust up with one
-<<<<<<< HEAD
   esc.writeMicroseconds(MTR_NEUTRAL + thrust); // Set motor to 1500+ thrust
-=======
-  esc.writeMicroseconds(MINIMUM_THRUST + thrust); // Set motor to 1500+ thrust
->>>>>>> origin/main
 
   timer_expired += 1; // Add one to timer_expired
 }
@@ -533,17 +479,10 @@ void prog_a_timer_handler(void)
 void prog_b_timer_handler(void)
 {
   uint8_t thrust = 50;
-<<<<<<< HEAD
   
     esc.writeMicroseconds(MTR_NEUTRAL + thrust);     // Set motor to 1500 + thrust
     thrust = thrust + THRUST_LADDER;                    // Add 50 to thrust 
     timer_expired += 1;                                 // Add one to timer_expired
-=======
-
-  esc.writeMicroseconds(MINIMUM_THRUST + thrust); // Set motor to 1500 + thrust
-  thrust = thrust + THRUST_LADDER;                // Add 50 to thrust
-  timer_expired += 1;                             // Add one to timer_expired
->>>>>>> origin/main
 }
 
 /*
@@ -552,15 +491,9 @@ void prog_b_timer_handler(void)
   Parameters: void
 */
 void prog_c_timer_handler(void)
-<<<<<<< HEAD
 { 
     esc.writeMicroseconds(MTR_MAX_ANTICLOCKWISE);       // Set motor to 2000
     timer_expired += 1;                                 // Add one to timer_expired
-=======
-{
-  esc.writeMicroseconds(MAXIMUM_THRUST); // Set motor to 2000
-  timer_expired += 1;                    // Add one to timer_expired
->>>>>>> origin/main
 }
 
 /*
