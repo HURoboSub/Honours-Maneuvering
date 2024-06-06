@@ -21,11 +21,15 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
+<<<<<<< HEAD
 #define CAL // Whether to calibrate shunt at the beginning 
+=======
+// #define CAL // Whether to calibrate shunt at the beginning 
+>>>>>>> origin/main
 #define LCD 0
 // #define USE_VERNIERLIB
 
-enum testPrograms testProgram = B; // default to test program A
+enum testPrograms testProgram = A; // default to test program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
@@ -60,12 +64,20 @@ TimerEvent timer_motor_test_a;
 TimerEvent timer_motor_test_b;
 TimerEvent timer_motor_test_c;
 
+uint8_t bla = 0;
 uint8_t timer_expired = 0;
 bool continuous_motor_test = true;
 
 /* Measurement data storage*/
 MEASUREMENT data;           // measurement data
 PMEASUREMENT pData = &data; // point to datastrucutre
+
+uint32_t wait = 0;
+motor_test_a motor_a = Neutral;
+motor_test_b motor_b = Start;
+motor_test_c motor_c = First;
+uint32_t thrust_prog_a = MTR_NEUTRAL;
+uint32_t thrust_prog_b = MTR_NEUTRAL;
 
 /* Timing configuration */
 unsigned long lastReadTime = 0ul;
@@ -111,6 +123,32 @@ void setup()
   
   // measuremunt datastructure
   output2Serial(pData); // output header row to serial
+<<<<<<< HEAD
+=======
+
+  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
+
+  
+  #ifdef CAL
+  Calibrate();
+
+  lcd.setCursor(0, 1);
+
+  lcd.print("Press Green");
+  #ifdef DEBUG 
+    Serial.println("Press Green");
+  #endif
+
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
+
+  lcd.clear(); // leeghalen lcd scherm
+  lcd.home();
+  #endif 
+  
+>>>>>>> origin/main
   // motor
   initMotor();         // Initialize the ESC
 }
@@ -396,14 +434,7 @@ Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intota
  */
 void motorTest(enum testPrograms prog)
 {
-
-  int i;
-  uint8_t thrust = 50;
-
   currentState = systemState::Testing; // put system to Testing 
-  #ifdef DEBUG
-  Serial.println("Testing motor");
-  #endif
 
   #ifdef DEBUG
     Serial.println((String) "Testing motorprogram:" + (int)prog);
@@ -412,75 +443,50 @@ void motorTest(enum testPrograms prog)
   switch (prog)
   {
   case A:
-    /* Testprogramma A continuous */
-    // clockwise
-    for (i = MTR_NEUTRAL; i > MTR_MIN_CLOCKWISE ; i-= MRT_INCREMENT)
-    {
-      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
 
-      #ifdef DEBUG
-      Serial.println((String)"thrust:"+ i);
-      #endif
-      delay(20);
-    }
-
-    #ifdef DEBUG
-    Serial.println("Reached full clockwise speed:");
-    #endif
-
-    // From full speed clockwise to full speed anticlock wise
-    for (i = MTR_MIN_CLOCKWISE; i < MTR_MAX_ANTICLOCKWISE ; i+= MRT_INCREMENT)
-    {
-      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
-
-      #ifdef DEBUG
-      Serial.println((String)"thrust:"+ i);
-      #endif
-      delay(20);
-    }
-
-    #ifdef DEBUG
-    Serial.println("Reached full anticlockwise speed:");
-    #endif
 
     // TIMER APPROACH
-    // timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
+    timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    // continuous_motor_test = true;  
-    // while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
-    // {
-    //     timer_motor_test_a.update();  // Update the timer 
-    //     // Put the vernier sensor read func here (can be another timer if needed)
-    //     if(timer_expired >= CYCLES )  // Check if the loop has been played 500 times
-    //     {
-    //       continuous_motor_test = false;  // Set the bool to false to stop the while loop
-    //       timer_expired = 0;  // Reset timer_expired
-    //       esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
-    //     }
-    // initMotor(); // first re-intitilias motor?
+    continuous_motor_test = true;  
+    while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
+    {
+        timer_motor_test_a.update();  // Update the timer 
+        // Put the vernier sensor read func here (can be another timer if needed)
+        // pData -> force = readVernier();
+        #ifdef DEBUG
+        Serial.println("Code next to timer");
+        #endif
+        if(timer_expired >= CYCLES )  // Check if the loop has been played 500 times
+        {
+          continuous_motor_test = false;  // Set the bool to false to stop the while loop
+          timer_expired = 0;  // Reset timer_expired
+          esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
+        }
+    }
 
     break; /* Program A */
 
   case B:
   /* Testprogramma B LADDER */
-  //  timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
+   timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
   //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
   //    */
-  //   continuous_motor_test = true;
-  //   while(continuous_motor_test)  // While loop gets played as long as continuous_motor_test is true
-  //   {
-  //       timer_motor_test_b.update();  // Update the timer
-  //       // Put the vernier sensor read func here (can be another timer if needed)
-  //       #ifdef DEBUG
-  //         Serial.println("in testprogramma B");
-  //       #endif
-  //       if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
-  //       {
-  //         continuous_motor_test = false;  //Set bool to false to stop loop
-  //         timer_expired = 0;  // Reset timer_expired
-  //         esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
-  //       }
-  //   }
+    continuous_motor_test = true;
+    while(continuous_motor_test)  // While loop gets played as long as continuous_motor_test is true
+    {
+        timer_motor_test_b.update();  // Update the timer
+        // Put the vernier sensor read func here (can be another timer if needed)
+        #ifdef DEBUG
+          Serial.println("in testprogramma B");
+        #endif
+        if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
+        {
+          continuous_motor_test = false;  //Set bool to false to stop loop
+          timer_expired = 0;  // Reset timer_expired
+          esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
+        }
+    }
   break; /* Program B */
 
   case C:
@@ -489,14 +495,16 @@ void motorTest(enum testPrograms prog)
     */
 
     timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
-
+    while(continuous_motor_test)
+    {
     timer_motor_test_c.update(); // Update the timer
     // Put the vernier sensor read func here (can be another timer if needed)
-    if (timer_expired >= 1) // Check if the loop has been played 9 times
+    if (timer_expired >= 4)
     {
       continuous_motor_test = false;      // Set bool to false to stop loop
       timer_expired = 0;                  // Reset timer_expired
       esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
+    }
     }
     break; /* Program C */
 
@@ -513,14 +521,102 @@ void motorTest(enum testPrograms prog)
     
   Parameters: void
 */
+
 void prog_a_timer_handler(void)
 {
-  uint8_t thrust = 50;
+#ifdef DEBUG_MOTOR
+  Serial.println((String) "wait is at" + wait);
+#endif
 
-  thrust = thrust + 1;                            // Ramp the thrust up with one
-  esc.writeMicroseconds(MTR_NEUTRAL + thrust); // Set motor to 1500+ thrust
+  switch (motor_a)
+  {
+  case Neutral:
 
-  timer_expired += 1; // Add one to timer_expired
+    if (wait < 5)
+      esc.writeMicroseconds(MTR_NEUTRAL);
+
+    wait += 1;
+
+    if (wait >= WAIT_TIME)
+    {
+      motor_a = Adding;
+      wait = 0;
+    }
+    break;
+  case Adding:
+
+#ifdef DEBUG_MOTOR
+    Serial.println("Reached case Adding");
+#endif
+
+    if (thrust_prog_a >= MTR_MAX_ANTICLOCKWISE)
+    {
+      wait += 1;
+      if (wait >= WAIT_TIME)
+      {
+        motor_a = Subtracting;
+        wait = 0;
+      }
+    }
+    else
+    {
+
+      esc.writeMicroseconds(thrust_prog_a = thrust_prog_a + 10);
+#ifdef DEBUG_MOTOR
+      Serial.println((String) "thrust_prog_a = " + thrust_prog_a);
+#endif
+    }
+    break;
+
+  case Subtracting:
+
+#ifdef DEBUG_MOTOR
+    Serial.println("Reached case Subtracting");
+#endif
+
+    if (thrust_prog_a == MTR_MIN_CLOCKWISE)
+    {
+      wait += 1;
+
+      if (wait >= WAIT_TIME)
+      {
+        motor_a = Adding_halve;
+        wait = 0;
+      }
+    }
+    else
+    {
+      esc.writeMicroseconds(thrust_prog_a = thrust_prog_a - 10);
+    }
+    break;
+
+  case Adding_halve:
+
+#ifdef DEBUG_MOTOR
+    Serial.println("Reached case Adding_halve");
+#endif
+
+    if (thrust_prog_a == MTR_NEUTRAL)
+    {
+      wait += 1;
+
+      if (wait >= WAIT_TIME)
+      {
+        motor_a = Subtracting;
+        wait = 0;
+      }
+    }
+    else
+    {
+      esc.writeMicroseconds(thrust_prog_a = thrust_prog_a + 10);
+    }
+    break;
+
+  default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  }
+  timer_expired = timer_expired + 1;
 }
 
 /*
@@ -530,11 +626,48 @@ void prog_a_timer_handler(void)
 */
 void prog_b_timer_handler(void)
 {
-  uint8_t thrust = 50;
-  
-    esc.writeMicroseconds(MTR_NEUTRAL + thrust);     // Set motor to 1500 + thrust
-    thrust = thrust + THRUST_LADDER;                    // Add 50 to thrust 
-    timer_expired += 1;                                 // Add one to timer_expired
+  switch (motor_b)
+  {
+  case Start:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    motor_b = Upper;
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+#endif
+    break;
+  case Upper:
+    esc.writeMicroseconds(thrust_prog_b);
+    thrust_prog_b = thrust_prog_b + 50;
+
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+#endif
+
+    if (thrust_prog_b >= MTR_MAX_ANTICLOCKWISE)
+    {
+      motor_b = Lower;
+    }
+    break;
+  case Lower:
+    esc.writeMicroseconds(thrust_prog_b);
+    thrust_prog_b = thrust_prog_b - 50;
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+#endif
+
+    if (thrust_prog_b <= MTR_MIN_CLOCKWISE)
+    {
+      motor_b = Default;
+    }
+    break;
+  case Default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  }
+  timer_expired += 1; // Add one to timer_expired
 }
 
 /*
@@ -542,10 +675,47 @@ void prog_b_timer_handler(void)
 
   Parameters: void
 */
+uint32_t i = 0;
+uint32_t thrust_prog_c = 1500;
 void prog_c_timer_handler(void)
-{ 
-    esc.writeMicroseconds(MTR_MAX_ANTICLOCKWISE);       // Set motor to 2000
-    timer_expired += 1;                                 // Add one to timer_expired
+{
+#ifdef DEBUG_MOTOR
+  Serial.println((String) "State = " + motor_c);
+#endif
+  switch (motor_c)
+  {
+  case First:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    motor_c = Second;
+    break;
+  case Second:
+    for (i = MTR_NEUTRAL; i <= MTR_MAX_ANTICLOCKWISE; i++)
+    {
+      esc.writeMicroseconds(i);
+      delay(5);
+    }
+    motor_c = Third;
+    break;
+  case Third:
+    for (i = MTR_MAX_ANTICLOCKWISE; i <= MTR_MIN_CLOCKWISE; i--)
+    {
+      esc.writeMicroseconds(i);
+      delay(5);
+    }
+    motor_c = Fourth;
+    break;
+  case Fourth:
+    for (i = MTR_MIN_CLOCKWISE; i <= MTR_NEUTRAL; i++)
+    {
+      esc.writeMicroseconds(i);
+      delay(5);
+    }
+  default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  }
+
+  timer_expired += 1; // Add one to timer_expired
 }
 
 /*
