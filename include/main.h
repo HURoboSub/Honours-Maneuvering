@@ -32,8 +32,8 @@
 #define NUM_BUTTONS 3
 
 /* MOTOR test parameters */
-#define CYCLES 3150
-#define STEPS 9
+#define CYCLES 350
+#define STEPS 16
 
 #define MTR_STARTUP_DELAY_MS 5000
 
@@ -45,8 +45,9 @@
 
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
-#define DUR_PROG_B 10000
+#define DUR_PROG_B 1000
 #define DUR_PROG_C 3000
+#define WAIT_TIME 50
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
@@ -84,7 +85,7 @@ enum class systemState {
     Output       // S4
 } currentState; // class storing the current system state
 
-enum motor_state_t
+enum motor_test_a
 {
     Neutral,
     Adding,
@@ -92,6 +93,20 @@ enum motor_state_t
     Adding_halve
 };
 
+enum motor_test_b
+{
+    Start,
+    Upper,
+    Lower,
+    Default
+};
+enum motor_test_c
+{
+    First,
+    Second,
+    Third,
+    Fourth
+};
 enum testPrograms // Motor test programm
 {
     A, // Continuos
