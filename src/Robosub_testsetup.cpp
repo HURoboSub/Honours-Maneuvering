@@ -33,6 +33,8 @@ uint8_t AMP_PIN = A1; // Define Amperage control
 
 uint8_t ESC_PIN = 3; // Define ESC control pin
 
+uint8_t VERNIER_PIN = A3; // Define Vernier analog read
+
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {6, 5, 4}; // Define ESC control pin D6 D5 D4
 Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
@@ -41,6 +43,9 @@ bool *pButtonStates = &buttonStates[0];             // define pointer, pointing 
 /* ADC Calibration values */
 float ADC_V_Step = MAX_VOLT / MAX_ADC;
 float ADC_A_Step = MAX_AMP / MAX_ADC;
+
+/* Vernier */
+uint16_t VERNIER_CAL_FACTOR = 550; 
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
@@ -82,6 +87,8 @@ void setup()
 
   pinMode(VOLT_PIN, INPUT);
   pinMode(AMP_PIN, INPUT);
+
+  pinMode(VERNIER_PIN, INPUT); // Vernier pin as input
 
   pinMode(BUTTON_PINS[0], INPUT_PULLUP);
   pinMode(BUTTON_PINS[1], INPUT_PULLUP);
@@ -128,7 +135,7 @@ void loop()
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  // pData->force = readVernier();
+  pData->force = readVernier();
   // calcPower(pData);
   motorTest(testProgram);
   // output2Serial(pData);
@@ -213,6 +220,38 @@ void Calibrate(void)
   Function:
   Parameters:
  */
+void CalibrateVernier(void)
+{
+  uint16_t readValue;
+  float force;
+  float voltage;
+
+  lcd.clear();
+  lcd.home();                // LCD cursor to 0,0
+  lcd.print("Cal vernier!"); // Show instruction on 1 LCD-row
+
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[0] == false); // Wait until most left button has been pressed
+
+  // take average of 10 measurements
+  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+    readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
+
+  readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+
+  VERNIER_CAL_FACTOR = readValue;
+  
+#ifdef DEBUG
+  Serial.println((String) "vernier cal factor" + VERNIER_CAL_FACTOR);
+#endif
+}
+
+/*
+  Function:
+  Parameters:
+ */
 void initMotor()
 {
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
@@ -249,14 +288,34 @@ void handleButtons(bool *pState) {
   Function: Reads varnier sensor and returns value
   Parameters:
  */
-// int readVernier()
-// {
-//   currentState = systemState::Reading; // put system to Reading state
+float readVernier()
+{
+  uint16_t readValue;
+  float voltage;
+  float force;
 
-//   float sensorReading = Vernier.readSensor();
+  currentState = systemState::Reading; // put system to Reading state
 
-//   return sensorReading;
-// }
+  #ifdef DEBUG
+    Serial.println((String) "Reading Vernier:" + NUM_ADC_READINGS + "times");
+  #endif
+
+  // for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+  //   readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
+
+  // readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+
+  readValue = analogRead(VERNIER_PIN); 
+
+  readValue = VERNIER_CAL_FACTOR - readValue; // Correct VERNIER_CAL_FACTOR 
+
+  voltage = readValue / MAX_ADC * 5.0; // ADC terug naar spanning
+  // -4.67 [0 - 10 N]
+  // -23.45 [0 - 50 N]
+  force = voltage * -23.45; // multiply by [N/V] 
+
+  return force;
+}
 
 /*
   Function: calcPower
