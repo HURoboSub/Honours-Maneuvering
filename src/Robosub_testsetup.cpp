@@ -347,13 +347,47 @@ void motorTest(enum testPrograms prog)
   int i;
   uint8_t thrust = 50;
 
-  currentState = systemState::Testing; // put system to Testing 
+  currentState = systemState::Testing; // put system to Testing
 
+  #ifdef DEBUG
+    Serial.println((String) "Testing motorprogram:" + (int)prog);
+  #endif
+  
   switch (prog)
   {
   case A:
     /* Testprogramma A continuous */
+    // clockwise
+    for (i = MTR_NEUTRAL; i > MTR_MIN_CLOCKWISE ; i-= MRT_INCREMENT)
+    {
+      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
 
+      #ifdef DEBUG
+      Serial.println((String)"thrust:"+ i);
+      #endif
+      delay(20);
+    }
+
+    #ifdef DEBUG
+    Serial.println("Reached full clockwise speed:");
+    #endif
+
+    // From full speed clockwise to full speed anticlock wise
+    for (i = MTR_MIN_CLOCKWISE; i < MTR_MAX_ANTICLOCKWISE ; i+= MRT_INCREMENT)
+    {
+      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
+
+      #ifdef DEBUG
+      Serial.println((String)"thrust:"+ i);
+      #endif
+      delay(20);
+    }
+
+    #ifdef DEBUG
+    Serial.println("Reached full anticlockwise speed:");
+    #endif
+
+    // TIMER APPROACH
     // timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     // continuous_motor_test = true;  
@@ -367,20 +401,9 @@ void motorTest(enum testPrograms prog)
     //       timer_expired = 0;  // Reset timer_expired
     //       esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
     //     }
-    // andere kant op (met de klok mee)
     // initMotor(); // first re-intitilias motor?
 
-    for (i = MTR_NEUTRAL; i > MTR_MIN_CLOCKWISE ; i-=1)
-    {
-      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
-
-      #ifdef DEBUG
-      Serial.println((String)"thrust:"+ i);
-      #endif
-      delay(20);
-    }
-
-    break;
+    break; /* Program A */
 
   case B:
   /* Testprogramma B LADDER */
@@ -402,19 +425,7 @@ void motorTest(enum testPrograms prog)
   //         esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
   //       }
   //   }
-
-    // voor nu draai tegen de klok in
-    // initMotor(); // first re-int
-    for (i = MTR_NEUTRAL; i < MTR_MIN_CLOCKWISE ; i+=1)
-    {
-      esc.writeMicroseconds(i);  // Set the motor to 0 RPM
-
-      #ifdef DEBUG
-      Serial.println((String)"thrust:"+ i);
-      #endif
-      delay(20);
-    }
-    break;
+  break; /* Program B */
 
   case C:
     /*Testprogramma C Ramp
@@ -431,7 +442,7 @@ void motorTest(enum testPrograms prog)
       timer_expired = 0;                  // Reset timer_expired
       esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
     }
-    break;
+    break; /* Program C */
 
   default:
     #ifdef DEBUG
