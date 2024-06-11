@@ -35,7 +35,7 @@
 #define CYCLES 350
 #define STEPS 16
 
-#define MTR_STARTUP_DELAY_MS 5000
+#define MTR_STARTUP_DELAY_MS 3000
 
 #define MTR_MIN_CLOCKWISE 1000  // µs for max speed  clockwise
 #define MTR_NEUTRAL 1500 // µs rest thrust
@@ -44,7 +44,7 @@
 #define MRT_INCREMENT 1 // how much the micros should increase each time
 
 #define THRUST_LADDER 50
-#define DUR_PROG_A 20
+#define DUR_PROG_A 5
 #define DUR_PROG_B 1000
 #define DUR_PROG_C 3000
 #define WAIT_TIME 50

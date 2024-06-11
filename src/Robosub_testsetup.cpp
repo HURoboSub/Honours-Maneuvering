@@ -22,16 +22,18 @@
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
 // #define DEBUG_MOTOR
-// #define CAL_VERNIER
-#define CAL // Whether to calibrate shunt at the beginning
+#define CAL_VERNIER
+#define CAL_SHUNT// Whether to calibrate shunt at the beginning
+
 #define LCD 1
+#define DEBUG_VERNIER
 // #define USE_VERNIERLIB
 
 enum testPrograms testProgram = A; // which testprogram to run  program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
-uint8_t AMP_PIN = A1;  // Define Amperage control
+uint8_t AMP_PIN = A1; // Define Amperage control
 
 uint8_t ESC_PIN = 3; // Define ESC control pin
 
@@ -43,11 +45,11 @@ bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the bu
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
 
 /* ADC Calibration values */
-float ADC_V_Step = MAX_VOLT / MAX_ADC;
-float ADC_A_Step = MAX_AMP / MAX_ADC;
+float ADC_V_Step = 0.01852; 
+float ADC_A_Step = 0.01486; 
 
 /* Vernier */
-float VENIER_BIAS = 550;
+float VENIER_BIAS = 550.0;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
@@ -94,16 +96,16 @@ void setup()
   userInterface(currentState); // diplay setup state on LCD
 
   pinMode(LED_BUILTIN, OUTPUT); // specifies that LED_BUILTIN will be used for output
-  pinMode(ESC_PIN, OUTPUT);
 
   pinMode(VOLT_PIN, INPUT);
   pinMode(AMP_PIN, INPUT);
-
   pinMode(VERNIER_PIN, INPUT); // Vernier pin as input
 
   pinMode(BUTTON_PINS[0], INPUT_PULLUP);
   pinMode(BUTTON_PINS[1], INPUT_PULLUP);
   pinMode(BUTTON_PINS[2], INPUT_PULLUP);
+
+  pinMode(ESC_PIN, OUTPUT);
 
   // After setting up the button, setup debouncer
   for (int i = 0; i < NUM_BUTTONS; i++)
@@ -118,12 +120,12 @@ void setup()
 #endif /* CAL_VERNIER */
 
 /* Calibrate shunt */
-#ifdef CAL 
+#ifdef CAL_SHUNT
   Calibrate();
-#endif /* CAL */
+#endif /* CAL_SHUNT*/
 
   // measuremunt datastructure
-  // output2Serial(pData); // output header row to serial
+  output2Serial(pData); // output header row to serial
 
   // motor
   initMotor(); // Initialize the ESC
@@ -134,9 +136,9 @@ void loop()
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  // motorTest(testProgram);
+  motorTest(testProgram);
   readVernier();
-  // output2Serial(pData);
+  output2Serial(pData);
 }
 
 /*
@@ -225,9 +227,9 @@ void Calibrate(void)
 //   delay(1000);
   // finished wait for press yellow
   lcd.setCursor(0, 1);
-  lcd.print("Press yellow");
+  lcd.print("Press green");
 #ifdef DEBUG
-  Serial.println("Press yellow");
+  Serial.println("Press green");
 #endif
 
   do
@@ -245,15 +247,14 @@ void Calibrate(void)
  */
 void CalibrateVernier(void)
 {
-  float force;
-  float voltage;
-
-  float readValue;
+  float force = 0.0;
+  float voltage = 0.0;
+  float readValue = 0.0;
 
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
   lcd.home();                // LCD cursor to 0,0
-  lcd.print("Cal vernier!"); // Show instruction on 1 LCD-row
+  lcd.print("CAL vernier!"); // Show instruction on 1 LCD-row
   lcd.setCursor(0, 1);                // LCD cursor to 0,0
   lcd.print("Press yellow");
 #endif
@@ -273,6 +274,10 @@ void CalibrateVernier(void)
   readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
   VENIER_BIAS = readValue;
+#ifdef DEBUG_VERNIER
+  Serial.print("VENIER_BIAS:\t");
+  Serial.println(VENIER_BIAS);
+#endif
 
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
@@ -323,9 +328,9 @@ void handleButtons(bool *pState)
  */
 float readVernier()
 {
-  int readValue;
-  float voltage = 0;
-  float force = 0;
+  float readValue = 0.0;
+  float voltage = 0.0;
+  float force = 0.0;
 
   currentState = systemState::Reading; // put system to Reading state
 
@@ -344,17 +349,15 @@ float readVernier()
 
   readValue -= VENIER_BIAS; // Correct VENIER_BIAS
 
-  voltage = (((float)readValue) / 1023.0) * 5.0; // ADC terug naar spanning
+  voltage = (readValue / 1023.0) * 5.0; // ADC terug naar spanning
+  force = voltage * 23.45; // multiply by [N/V]
   // -4.67 [0 - 10 N]
   // -23.45 [0 - 50 N]
-  force = voltage * 23.45; // multiply by [N/V]
 
-  #ifdef DEBUG
-  Serial.print("Readvalue :\t");
-  Serial.print(readValue);
-  Serial.print("force:\t");
-  Serial.println(force);
-  #endif
+  // #ifdef DEBUG_VERNIER
+  // Serial.print("voltage vernier:\t");
+  // Serial.println(voltage);
+  // #endif
  
   pData->force = force; // set force in structure
 
@@ -369,16 +372,17 @@ float readVernier()
  */
 float calcPower(PMEASUREMENT p)
 {
-  float power = 0; // Initialize power variable
-  int ampVal = 0;  // Initialize analog value for current
-  int voltVal = 0; // Initialize analog value for voltage
+  float power = 0.0; // Initialize power variable
+  float ampVal = 0.0;  // Initialize analog value for current
+  float voltVal = 0.0; // Initialize analog value for voltage
 
   currentState = systemState::Reading; // put system to Reading state
   userInterface(currentState);
 
   // Read analog values from pins
-  voltVal = analogRead(VOLT_PIN); // Read voltage value
-  ampVal = analogRead(AMP_PIN);   // Read current value
+  voltVal = (float) analogRead(VOLT_PIN); // Read voltage value
+  delay(20);
+  ampVal = (float) analogRead(AMP_PIN);   // Read current value
 
   // Convert analog values to actual voltage and current
   p->voltage = (voltVal * ADC_V_Step); // Calculate voltage in volts
@@ -450,9 +454,11 @@ void motorTest(enum testPrograms prog)
     while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
     {
       timer_motor_test_a.update(); // Update the timer
+
       // Put the vernier sensor read func here (can be another timer if needed)
-      // pData-> force = readVernier();
-      // calcPower(pData);
+      readVernier();
+      calcPower(pData);
+      output2Serial(pData);
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
       {
@@ -783,10 +789,6 @@ void userInterface(systemState cState)
     rowTwoLCD = "No state passed";
     break;
   }
-
-#ifdef DEBUG
-  Serial.println(rowOneLCD); // Show state in Serial
-#endif
 
   // // delete allocated memory for dispText buffer
   // for (y = 0; y < LCD_ROWS; y++)
