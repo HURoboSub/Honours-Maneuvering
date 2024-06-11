@@ -121,7 +121,7 @@ void setup()
 
 /* Calibrate shunt */
 #ifdef CAL_SHUNT
-  Calibrate();
+  CalibrateShunt();
 #endif /* CAL_SHUNT*/
 
   // measuremunt datastructure
@@ -144,7 +144,7 @@ void loop()
 /*
   Function: Calibrate the shunt for Voltage and Current
  */
-void Calibrate(void)
+void CalibrateShunt(void)
 {
   float ADCval = 0.0;
   char strBuf[8]; // convert calculated ADC Step (float) to char-array for printing
