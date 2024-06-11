@@ -41,7 +41,7 @@
 #define MTR_NEUTRAL 1500 // µs rest thrust
 #define MTR_MAX_ANTICLOCKWISE 2000 // µs for max speed anticlockwise
 
-#define MRT_INCREMENT 2 // how much the micros should increase each time
+#define MRT_INCREMENT 1 // how much the micros should increase each time
 
 #define THRUST_LADDER 50
 #define DUR_PROG_A 20
@@ -69,10 +69,11 @@
 
 struct measurement // structure containing the measurements
 {
-    float voltage;
-    float current;
-    float power;
-    float force;
+    float voltage; // SHUNT
+    float current; // SHUNT
+    float power; // SHUNT
+    float force; // VERNIER force
+    int force_raw; // // VERNIER raw ADC value
 };
 
 typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
@@ -87,28 +88,25 @@ enum class systemState {
     Output       // S4
 } currentState; // class storing the current system state
 
-enum motor_test_a
-{
-    Neutral,
-    Adding,
-    Subtracting,
-    Adding_halve
-};
-
-enum motor_test_b
-{
-    Start,
-    Upper,
-    Lower,
-    Default
-};
-enum motor_test_c
+enum testPhasesC
 {
     First,
     Second,
     Third,
     Fourth
 };
+
+/* test states program A*/
+#define NEUTRAL 0
+#define ADDING 1
+#define SUBTRACTING 2
+#define ADDING_HALVE 3
+
+/* test states program B*/
+#define UPPER 1
+#define LOWER 2
+#define FINISHED 3
+
 enum testPrograms // Motor test programm
 {
     A, // Continuos

@@ -21,16 +21,17 @@
 #include "main.h" // main header file
 
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-#define DEBUG_MOTOR
-// #define CAL // Whether to calibrate shunt at the beginning 
-#define LCD 0
+// #define DEBUG_MOTOR
+// #define CAL_VERNIER
+#define CAL // Whether to calibrate shunt at the beginning
+#define LCD 1
 // #define USE_VERNIERLIB
 
-enum testPrograms testProgram = B; // default to test program A
+enum testPrograms testProgram = A; // which testprogram to run  program A
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
-uint8_t AMP_PIN = A1; // Define Amperage control
+uint8_t AMP_PIN = A1;  // Define Amperage control
 
 uint8_t ESC_PIN = 3; // Define ESC control pin
 
@@ -46,7 +47,7 @@ float ADC_V_Step = MAX_VOLT / MAX_ADC;
 float ADC_A_Step = MAX_AMP / MAX_ADC;
 
 /* Vernier */
-uint16_t VERNIER_CAL_FACTOR = 550; 
+float VENIER_BIAS = 550;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
@@ -56,25 +57,26 @@ char const *rowTwoLCD = "               "; // textrow one of LCD
 /* Motor configuration */
 Servo esc; // Create a Servo object
 
+// Store the state of motor test program
+                           // prog A, B, C
+uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, 0};
+
 // Create the 3 timers for each motortestprogram
 TimerEvent timer_motor_test_a;
 TimerEvent timer_motor_test_b;
 TimerEvent timer_motor_test_c;
 
-uint8_t bla = 0;
 uint8_t timer_expired = 0;
 bool continuous_motor_test = true;
+
+uint32_t wait = 0;
+
+uint32_t micros_prog_a = MTR_NEUTRAL;
+uint32_t micros_prog_b = MTR_NEUTRAL;
 
 /* Measurement data storage*/
 MEASUREMENT data;           // measurement data
 PMEASUREMENT pData = &data; // point to datastrucutre
-
-uint32_t wait = 0;
-motor_test_a motor_a = Neutral;
-motor_test_b motor_b = Start;
-motor_test_c motor_c = First;
-uint32_t thrust_prog_a = MTR_NEUTRAL;
-uint32_t thrust_prog_b = MTR_NEUTRAL;
 
 /* Timing configuration */
 unsigned long lastReadTime = 0ul;
@@ -110,28 +112,30 @@ void setup()
     buttons[i].interval(25);                         // debounce interval in ms
   }
 
-  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
-  #ifdef CAL
+// https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
+#ifdef CAL_VERNIER
   CalibrateVernier();
-  Calibrate();
-  #endif /* CAL */
-  
-  // measuremunt datastructure
-  output2Serial(pData); // output header row to serial
+#endif /* CAL_VERNIER */
 
-  // https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
+/* Calibrate shunt */
+#ifdef CAL 
+  Calibrate();
+#endif /* CAL */
+
+  // measuremunt datastructure
+  // output2Serial(pData); // output header row to serial
 
   // motor
-  initMotor();         // Initialize the ESC
+  initMotor(); // Initialize the ESC
 }
 
 void loop()
-{ 
+{
   lastReadTime = millis();
   handleButtons(pButtonStates);
 
-  // pData->force = readVernier();
-  motorTest(testProgram);
+  // motorTest(testProgram);
+  readVernier();
   // output2Serial(pData);
 }
 
@@ -141,19 +145,20 @@ void loop()
 void Calibrate(void)
 {
   uint16_t ADCval;
+  float ADCval_avg;
   char strBuf[8]; // convert calculated ADC Step (float) to char-array for printing
 
-  currentState = systemState::Calibrating; 
+  currentState = systemState::Calibrating;
 
-  /* Current Calibration */
-  #ifdef DEBUG 
+/* Current Calibration */
+#ifdef DEBUG
   userInterface(currentState);
-  Serial.println((String)CAL_AMP + "A aansluiten");
-  #endif
+  Serial.println((String)CAL_AMP + "A aansluiten (ROOD + en GEEL)");
+#endif
 
   lcd.clear();
-  lcd.home(); // LCD cursor to 0,0
-  lcd.print((String)CAL_AMP + "A aansluiten");  // Show instruction on 1 LCD-row
+  lcd.home();                                  // LCD cursor to 0,0
+  lcd.print((String)CAL_AMP + "A aansluiten"); // Show instruction on 1 LCD-row
 
   do
   {
@@ -163,27 +168,28 @@ void Calibrate(void)
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
     ADCval += analogRead(AMP_PIN); // Read AMP_PIN NUM_ADC_READINGS times and sum it
 
-  ADCval /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+  ADCval_avg = ADCval / NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  ADC_A_Step = CAL_AMP / ADCval; // Calculate amount of current per ADC-value step
+  ADC_A_Step = (float) CAL_AMP / ADCval_avg; // Calculate amount of current per ADC-value step
 
-  dtostrf(ADC_A_Step, 2, 5, strBuf); // Convert float to char-array 
-  
-  #ifdef DEBUG 
-  Serial.println((String)"ADC_A_Step: " + strBuf + " A/Step" );
-  #endif
-  
+  dtostrf(ADC_A_Step, 2, 5, strBuf); // Convert float to char-array
+
+#ifdef DEBUG
+  Serial.print((String) "ADCval_avg: " + ADCval_avg);
+  Serial.println((String)"ADC_A_Step: " + ADC_A_Step);
+#endif
+
   lcd.clear(); // Show calculated current step on LCD
-  lcd.home(); // LCD cursor to 0,0
+  lcd.home();  // LCD cursor to 0,0
   lcd.print(strBuf);
   lcd.print(" A/Step");
 
-  /* Voltage Calibration */
-  #ifdef DEBUG 
+/* Voltage Calibration */
+#ifdef DEBUG
   Serial.println((String) + CAL_VOLT + "V aansluiten");
-  #endif
+#endif
 
-  lcd.setCursor(0, 1); // LCD cursor to row 2
+  lcd.setCursor(0, 1);                          // LCD cursor to row 2
   lcd.print((String)CAL_VOLT + "V aansluiten"); // Show instruction on 2nd LCD-row
 
   do
@@ -194,29 +200,31 @@ void Calibrate(void)
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
     ADCval += analogRead(VOLT_PIN); // Read VOLT_PIN NUM_ADC_READINGS times and sum it
 
-  ADCval /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+  ADCval_avg = ADCval / NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  ADC_V_Step = CAL_VOLT / ADCval; // Calculate amount of current per ADC-value step
+  ADC_V_Step = (float) CAL_VOLT / ADCval_avg; // Calculate amount of current per ADC-value step
 
-  dtostrf(ADC_V_Step, 2, 5, strBuf); // Convert float to char-array 
-  
-  #ifdef DEBUG
-  Serial.println((String)"ADC_V_Step: " + strBuf + " V/Step");
-  #endif
+  dtostrf(ADC_V_Step, 2, 5, strBuf); // Convert float to char-array
 
+#ifdef DEBUG
+  Serial.print((String) "ADCval_avg: " + ADCval_avg);
+  Serial.println((String)"ADC_V_Step: " + ADC_V_Step);
+#endif
+
+#if defined(LCD) && (LCD == 1)
   lcd.clear(); // Show calculated voltage step on LCD
   lcd.home();
   lcd.print(strBuf);
   lcd.print(" V/Step");
+#endif 
 
-  delay(1000); 
+  delay(1000);
   // finished wait for press yellow
   lcd.setCursor(0, 1);
-
   lcd.print("Press yellow");
-  #ifdef DEBUG 
-    Serial.println("Press yellow");
-  #endif
+#ifdef DEBUG
+  Serial.println("Press yellow");
+#endif
 
   do
   {
@@ -233,19 +241,18 @@ void Calibrate(void)
  */
 void CalibrateVernier(void)
 {
-  uint16_t readValue;
   float force;
   float voltage;
+
+  float readValue;
 
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
   lcd.home();                // LCD cursor to 0,0
   lcd.print("Cal vernier!"); // Show instruction on 1 LCD-row
-#endif 
-
-#ifdef DEBUG 
-  Serial.println("Cal vernier, press green button");
-#endif 
+  lcd.setCursor(0, 1);                // LCD cursor to 0,0
+  lcd.print("Press yellow");
+#endif
 
   do
   {
@@ -254,15 +261,21 @@ void CalibrateVernier(void)
 
   // take average of 10 measurements
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+  {
     readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
+    delayMicroseconds(10);
+  }
 
   readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  VERNIER_CAL_FACTOR = readValue;
-  
-#ifdef DEBUG
-  Serial.println((String) "VERNIER_CAL_FACTOR:\t" + VERNIER_CAL_FACTOR);
+  VENIER_BIAS = readValue;
+
+#if defined(LCD) && (LCD == 1)
+  lcd.clear();
+  lcd.home();                // LCD cursor to 0,0
+  lcd.print("Calibrated!"); // Show instruction on 1 LCD-row
 #endif
+
 }
 
 /*
@@ -273,7 +286,7 @@ void initMotor()
 {
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   delay(20);
-  
+
   esc.writeMicroseconds(MTR_NEUTRAL); // Send a signal to the ESC to arm it
   delay(MTR_STARTUP_DELAY_MS);
 }
@@ -282,21 +295,20 @@ void initMotor()
   Function: handle button presses
   Parameters: pS, pointer to i'th index of buttonstatearray
  */
-void handleButtons(bool *pState) {
+void handleButtons(bool *pState)
+{
 
   // for the NUM_BUTTONS increase i and state pointer
   for (int i = 0; i < NUM_BUTTONS; pState++, i++)
   {
     // Update the Bounce instance :
     buttons[i].update();
-    
+
     *pState = buttons[i].fell(); // change right value of this button state
 
-    #ifdef DEBUG 
+    #ifdef DEBUG
     if (buttons[i].fell())
-    {
-        Serial.println((String)"button: " + i + " pressed\t state: " + *pState);
-    }
+      Serial.println((String) "button: " + i + " pressed\t state: " + *pState);
     #endif
   }
 }
@@ -307,37 +319,48 @@ void handleButtons(bool *pState) {
  */
 float readVernier()
 {
-  uint16_t readValue;
-  float voltage;
-  float force;
+  int readValue;
+  float voltage = 0;
+  float force = 0;
 
   currentState = systemState::Reading; // put system to Reading state
 
-  #ifdef DEBUG
-    Serial.println((String) "Reading Vernier:" + NUM_ADC_READINGS + "times");
-  #endif
+  readValue = analogRead(VERNIER_PIN); // single reading
+  
+  pData->force_raw = readValue; // set raw value in measurement data
 
-  readValue = analogRead(VERNIER_PIN);  // single reading
-
+  // #ifdef DEBUG
+  // Serial.print("raw Force (ADC):\t");
+  // Serial.print(VENIER_BIAS);
+  // #endif
   // for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
   //   readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
 
   // readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
+  readValue -= VENIER_BIAS; // Correct VENIER_BIAS
 
-  readValue = VERNIER_CAL_FACTOR - readValue; // Correct VERNIER_CAL_FACTOR 
-
-  voltage = readValue / MAX_ADC * 5.0; // ADC terug naar spanning
+  voltage = (((float)readValue) / 1023.0) * 5.0; // ADC terug naar spanning
   // -4.67 [0 - 10 N]
   // -23.45 [0 - 50 N]
-  force = voltage * -23.45; // multiply by [N/V] 
+  force = voltage * 23.45; // multiply by [N/V]
 
-  return force;
+  #ifdef DEBUG
+  Serial.print("Readvalue :\t");
+  Serial.print(readValue);
+  Serial.print("force:\t");
+  Serial.println(force);
+  #endif
+ 
+  pData->force = force; // set force in structure
+
+  return force; // return calculated force
 }
 
 /*
   Function: calcPower
   Calculate power based on voltage and current measurements
+
   Parameters: PMEASUREMENT p, pointer to measurement data structure
  */
 float calcPower(PMEASUREMENT p)
@@ -374,8 +397,7 @@ void output2Serial(PMEASUREMENT p)
   if (currentState == systemState::Setup) // if system is in setup mode
   {
     currentState = systemState::Output; // put system to Output state
-
-    Serial.println("time (ms), force (N), voltage (V), current (mA), power (W)"); // print header row
+    Serial.println("time (ms), force_raw (ADC), force (N), voltage (V), current (mA), power (W)"); // print header row
   }
   else // print data
   {
@@ -383,6 +405,8 @@ void output2Serial(PMEASUREMENT p)
     userInterface(currentState);
 
     Serial.print(millis() - lastReadTime);
+    Serial.print(",");
+    Serial.print(p->force_raw);
     Serial.print(",");
     Serial.print(p->force);
     Serial.print(",");
@@ -406,62 +430,59 @@ Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intota
  */
 void motorTest(enum testPrograms prog)
 {
-  currentState = systemState::Testing; // put system to Testing 
+  currentState = systemState::Testing; // put system to Testing
 
-  #ifdef DEBUG
-    Serial.println((String) "Testing motorprogram:" + (int)prog);
-  #endif
-  
+#ifdef DEBUG
+  Serial.println((String) "Testing motorprogram:" + (int)prog);
+#endif
+
   switch (prog)
   {
   case A:
+    initMotor();
     timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    continuous_motor_test = true;  
-    while(continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
+    continuous_motor_test = true;
+    while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
     {
-        timer_motor_test_a.update();  // Update the timer 
-        // Put the vernier sensor read func here (can be another timer if needed)
-        pData-> force = readVernier();
-        calcPower(pData);
+      timer_motor_test_a.update(); // Update the timer
+      // Put the vernier sensor read func here (can be another timer if needed)
+      // pData-> force = readVernier();
+      // calcPower(pData);
 
-        #ifdef DEBUG
-        Serial.println("Code next to timer");
-        #endif
-        if(timer_expired >= CYCLES )  // Check if the loop has been played 500 times
-        {
-          continuous_motor_test = false;  // Set the bool to false to stop the while loop
-          timer_expired = 0;  // Reset timer_expired
-          esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
-        }
+      if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
+      {
+        continuous_motor_test = false;      // Set the bool to false to stop the while loop
+        timer_expired = 0;                  // Reset timer_expired
+        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
+      }
     }
 
     break; /* Program A */
 
   case B:
-  /* Testprogramma B LADDER */
-  #ifdef DEBUG
+/* Testprogramma B LADDER */
+#ifdef DEBUG
     Serial.println("in testprogramma B");
-  #endif
-   timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler);  // Set the timer
-  //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden 
-  //    */
+#endif
+    timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler); // Set the timer
+                                                              //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
+                                                              //    */
     continuous_motor_test = true;
-    while(continuous_motor_test)  // While loop gets played as long as continuous_motor_test is true
+    while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
     {
-        timer_motor_test_b.update();  // Update the timer
-        // Put the vernier sensor read func here (can be another timer if needed)
-        pData-> force = readVernier();
-        calcPower(pData);
-        
-        if(timer_expired >= STEPS)  //Check if the loop has been played 9 times
-        {
-          continuous_motor_test = false;  //Set bool to false to stop loop
-          timer_expired = 0;  // Reset timer_expired
-          esc.writeMicroseconds(MTR_NEUTRAL);  // Set the motor to 0 RPM
-        }
+      timer_motor_test_b.update(); // Update the timer
+      // Put the vernier sensor read func here (can be another timer if needed)
+      // pData-> force = readVernier();
+
+      if (timer_expired >= STEPS) // Check if the loop has been played 9 times
+      {
+        continuous_motor_test = false;      // Set bool to false to stop loop
+        timer_expired = 0;                  // Reset timer_expired
+        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
+      }
     }
-  break; /* Program B */
+    break; /* Program B */
 
   case C:
     /*Testprogramma C Ramp
@@ -469,30 +490,30 @@ void motorTest(enum testPrograms prog)
     */
 
     timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
-    while(continuous_motor_test)
+    while (continuous_motor_test)
     {
-    timer_motor_test_c.update(); // Update the timer
-    // Put the vernier sensor read func here (can be another timer if needed)
-    if (timer_expired >= 4)
-    {
-      continuous_motor_test = false;      // Set bool to false to stop loop
-      timer_expired = 0;                  // Reset timer_expired
-      esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
-    }
+      timer_motor_test_c.update(); // Update the timer
+      // Put the vernier sensor read func here (can be another timer if needed)
+      if (timer_expired >= 4)
+      {
+        continuous_motor_test = false;      // Set bool to false to stop loop
+        timer_expired = 0;                  // Reset timer_expired
+        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
+      }
     }
     break; /* Program C */
 
   default:
-    #ifdef DEBUG
-      Serial.println("Verkeerd motor test programma doorgegeven");
-    #endif
+#ifdef DEBUG
+    Serial.println("ERR: Verkeerd motor test programma doorgegeven");
+#endif
     break;
   }
 }
 
 /*
   Function: prog_a_timer_handler
-    
+
   Parameters: void
 */
 
@@ -502,9 +523,9 @@ void prog_a_timer_handler(void)
   Serial.println((String) "wait is at" + wait);
 #endif
 
-  switch (motor_a)
+  switch (motorTestState[A])
   {
-  case Neutral:
+  case NEUTRAL: // 0
 
     if (wait < 5)
       esc.writeMicroseconds(MTR_NEUTRAL);
@@ -513,78 +534,72 @@ void prog_a_timer_handler(void)
 
     if (wait >= WAIT_TIME)
     {
-      motor_a = Adding;
+      motorTestState[A] = ADDING; // Next phases is increasing speed
       wait = 0;
     }
     break;
-  case Adding:
 
+  case ADDING: // 1
 #ifdef DEBUG_MOTOR
     Serial.println("Reached case Adding");
 #endif
 
-    if (thrust_prog_a >= MTR_MAX_ANTICLOCKWISE)
+    if (micros_prog_a >= MTR_MAX_ANTICLOCKWISE)
     {
       wait += 1;
       if (wait >= WAIT_TIME)
       {
-        motor_a = Subtracting;
+        motorTestState[A] = SUBTRACTING;
         wait = 0;
       }
     }
     else
     {
 
-      esc.writeMicroseconds(thrust_prog_a = thrust_prog_a + 10);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MRT_INCREMENT);
 #ifdef DEBUG_MOTOR
-      Serial.println((String) "thrust_prog_a = " + thrust_prog_a);
+      Serial.println((String) "micros_prog_a = " + micros_prog_a);
 #endif
     }
-    break;
+    break; // End of ADDING
 
-  case Subtracting:
-
+  case SUBTRACTING: // 2
 #ifdef DEBUG_MOTOR
     Serial.println("Reached case Subtracting");
 #endif
 
-    if (thrust_prog_a == MTR_MIN_CLOCKWISE)
+    if (micros_prog_a == MTR_MIN_CLOCKWISE)
     {
       wait += 1;
 
       if (wait >= WAIT_TIME)
       {
-        motor_a = Adding_halve;
+        motorTestState[A] = ADDING_HALVE;
         wait = 0;
       }
     }
     else
     {
-      esc.writeMicroseconds(thrust_prog_a = thrust_prog_a - 10);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MRT_INCREMENT);
     }
-    break;
+    break; // End of subtracting
 
-  case Adding_halve:
-
+  case ADDING_HALVE: // 3
 #ifdef DEBUG_MOTOR
     Serial.println("Reached case Adding_halve");
 #endif
-
-    if (thrust_prog_a == MTR_NEUTRAL)
+    if (micros_prog_a == MTR_NEUTRAL)
     {
       wait += 1;
-
       if (wait >= WAIT_TIME)
       {
-        motor_a = Subtracting;
+        motorTestState[A] = NEUTRAL;
         wait = 0;
       }
     }
     else
-    {
-      esc.writeMicroseconds(thrust_prog_a = thrust_prog_a + 10);
-    }
-    break;
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MRT_INCREMENT);
+    break; // End of ADDING_HALVE
 
   default:
     esc.writeMicroseconds(MTR_NEUTRAL);
@@ -600,43 +615,42 @@ void prog_a_timer_handler(void)
 */
 void prog_b_timer_handler(void)
 {
-  switch (motor_b)
+  switch (motorTestState[B])
   {
-  case Start:
+  case NEUTRAL:
     esc.writeMicroseconds(MTR_NEUTRAL);
-    motor_b = Upper;
-#ifdef DEBUG_MOTOR
-    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
-#endif
-    break;
-  case Upper:
-    esc.writeMicroseconds(thrust_prog_b);
-    thrust_prog_b = thrust_prog_b + 50;
+    motorTestState[B] = UPPER;
 
 #ifdef DEBUG_MOTOR
-    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+    Serial.println((String) "micros_prog_b = " + micros_prog_b);
 #endif
+    break; /* end of case NEUTRAL */
 
-    if (thrust_prog_b >= MTR_MAX_ANTICLOCKWISE)
-    {
-      motor_b = Lower;
-    }
-    break;
-  case Lower:
-    esc.writeMicroseconds(thrust_prog_b);
-    thrust_prog_b = thrust_prog_b - 50;
+  case UPPER:
+    esc.writeMicroseconds(micros_prog_b);
+    micros_prog_b = micros_prog_b + 50;
 #ifdef DEBUG_MOTOR
-    Serial.println((String) "thrust_prog_b = " + thrust_prog_b);
+    Serial.println((String) "micros_prog_b = " + micros_prog_b);
+#endif
+    if (micros_prog_b >= MTR_MAX_ANTICLOCKWISE)
+      motorTestState[B] = LOWER; // next state of prog B
+    break; /* end of case UPPER */
+
+  case LOWER:
+    esc.writeMicroseconds(micros_prog_b);
+    micros_prog_b = micros_prog_b - 50;
+#ifdef DEBUG_MOTOR
+    Serial.println((String) "micros_prog_b = " + micros_prog_b);
 #endif
 
-    if (thrust_prog_b <= MTR_MIN_CLOCKWISE)
-    {
-      motor_b = Default;
-    }
-    break;
-  case Default:
+    if (micros_prog_b <= MTR_MIN_CLOCKWISE)
+      motorTestState[B] = FINISHED; // next state of prog B
+    break; /* end of case LOWER */
+
+  case FINISHED:
     esc.writeMicroseconds(MTR_NEUTRAL);
-    break;
+    break; /* end of case FINISHED */
+
   default:
     esc.writeMicroseconds(MTR_NEUTRAL);
     break;
@@ -649,26 +663,25 @@ void prog_b_timer_handler(void)
 
   Parameters: void
 */
-uint32_t i = 0;
-uint32_t thrust_prog_c = 1500;
 void prog_c_timer_handler(void)
 {
+  uint32_t i = 0;
 #ifdef DEBUG_MOTOR
-  Serial.println((String) "State = " + motor_c);
+  Serial.println((String) "State = " + motorTestState[C]);
 #endif
-  switch (motor_c)
+  switch (motorTestState[C])
   {
-  case First:
+  case 0:
     esc.writeMicroseconds(MTR_NEUTRAL);
-    motor_c = Second;
+   motorTestState[C] = 1; // next state of prog C
     break;
-  case Second:
+  case 1:
     for (i = MTR_NEUTRAL; i <= MTR_MAX_ANTICLOCKWISE; i++)
     {
       esc.writeMicroseconds(i);
       delay(5);
     }
-    motor_c = Third;
+   motorTestState[C] = 2; // next state of prog C
     break;
   case Third:
     for (i = MTR_MAX_ANTICLOCKWISE; i <= MTR_MIN_CLOCKWISE; i--)
@@ -676,9 +689,9 @@ void prog_c_timer_handler(void)
       esc.writeMicroseconds(i);
       delay(5);
     }
-    motor_c = Fourth;
+   motorTestState[C] = 3;  // next state of prog C
     break;
-  case Fourth:
+  case 3:
     for (i = MTR_MIN_CLOCKWISE; i <= MTR_NEUTRAL; i++)
     {
       esc.writeMicroseconds(i);
@@ -761,22 +774,20 @@ void userInterface(systemState cState)
     // S4 Output here
     rowOneLCD = "S: Output      ";
     break;
-  default: // Should never get in default state 
+  default: // Should never get in default state
     rowOneLCD = "S: Error       ";
     rowTwoLCD = "No state passed";
     break;
   }
 
-  
-  #ifdef DEBUG
+#ifdef DEBUG
   Serial.println(rowOneLCD); // Show state in Serial
-  #endif
+#endif
 
-  // // delete allocated memory for dispText buffer 
+  // // delete allocated memory for dispText buffer
   // for (y = 0; y < LCD_ROWS; y++)
   // {
   //   delete[] dispText[y];
   // }
   // delete[] dispText;
-
 }
