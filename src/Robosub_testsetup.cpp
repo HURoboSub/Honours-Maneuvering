@@ -144,8 +144,7 @@ void loop()
  */
 void Calibrate(void)
 {
-  uint16_t ADCval;
-  float ADCval_avg;
+  float ADCval = 0.0;
   char strBuf[8]; // convert calculated ADC Step (float) to char-array for printing
 
   currentState = systemState::Calibrating;
@@ -166,16 +165,19 @@ void Calibrate(void)
   } while (buttonStates[0] == false); // Wait until most left button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-    ADCval += analogRead(AMP_PIN); // Read AMP_PIN NUM_ADC_READINGS times and sum it
+    ADCval += (float) analogRead(AMP_PIN); // Read AMP_PIN NUM_ADC_READINGS times and sum it
 
-  ADCval_avg = ADCval / NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+  ADCval /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  ADC_A_Step = (float) CAL_AMP / ADCval_avg; // Calculate amount of current per ADC-value step
+#ifdef DEBUG
+  Serial.println((String) "ADCval average: " + ADCval);
+#endif
+
+  ADC_A_Step = CAL_AMP / ADCval; // Calculate amount of current per ADC-value step
 
   dtostrf(ADC_A_Step, 2, 5, strBuf); // Convert float to char-array
 
 #ifdef DEBUG
-  Serial.print((String) "ADCval_avg: " + ADCval_avg);
   Serial.println((String)"ADC_A_Step: " + ADC_A_Step);
 #endif
 
@@ -183,6 +185,8 @@ void Calibrate(void)
   lcd.home();  // LCD cursor to 0,0
   lcd.print(strBuf);
   lcd.print(" A/Step");
+
+  ADCval = 0.0; // reset adcval
 
 /* Voltage Calibration */
 #ifdef DEBUG
@@ -198,17 +202,17 @@ void Calibrate(void)
   } while (buttonStates[0] == false); // Wait until most left button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-    ADCval += analogRead(VOLT_PIN); // Read VOLT_PIN NUM_ADC_READINGS times and sum it
+    ADCval += (float) analogRead(VOLT_PIN); // Read VOLT_PIN NUM_ADC_READINGS times and sum it
 
-  ADCval_avg = ADCval / NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+  ADCval /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  ADC_V_Step = (float) CAL_VOLT / ADCval_avg; // Calculate amount of current per ADC-value step
+  ADC_V_Step = CAL_VOLT / ADCval; // Calculate amount of current per ADC-value step
 
   dtostrf(ADC_V_Step, 2, 5, strBuf); // Convert float to char-array
 
 #ifdef DEBUG
-  Serial.print((String) "ADCval_avg: " + ADCval_avg);
-  Serial.println((String)"ADC_V_Step: " + ADC_V_Step);
+  Serial.print((String) "Volt ADCval avg: " + ADCval);
+  Serial.println((String)"ADC_V_Step: " + strBuf);
 #endif
 
 #if defined(LCD) && (LCD == 1)
@@ -218,7 +222,7 @@ void Calibrate(void)
   lcd.print(" V/Step");
 #endif 
 
-  delay(1000);
+//   delay(1000);
   // finished wait for press yellow
   lcd.setCursor(0, 1);
   lcd.print("Press yellow");
