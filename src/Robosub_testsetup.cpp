@@ -11,25 +11,27 @@
  * Hogeschool Utrecht
  * Date: 29-05-2024
  *
- * Version: 1.6.1
+ * Version: 2.0.0
  *
  * CHANGELOG:
- *
- *
+ * To Log the serialprints to textfile 
+ *    1. Open new platform io terminal
+ *    2. type command 'pio device monitor > output_logs.txt'
  */
 
 #include "main.h" // main header file
 
+/* */
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-// #define DEBUG_MOTOR
+#define DEBUG_VERNIER
 #define CAL_VERNIER
+// #define DEBUG_MOTOR
+
 #define CAL_SHUNT// Whether to calibrate shunt at the beginning
 
-#define LCD 1
-#define DEBUG_VERNIER
-// #define USE_VERNIERLIB
+#define LCD 1 // Toggle LCD 0 to 1
 
-enum testPrograms testProgram = A; // which testprogram to run  program A
+enum testPrograms testProgram = A; // which testprogram to run
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
@@ -45,11 +47,11 @@ bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the bu
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
 
 /* ADC Calibration values */
-float ADC_V_Step = 0.01852; 
+float ADC_V_Step = 0.01852;
 float ADC_A_Step = 0.01486; 
 
 /* Vernier */
-float VENIER_BIAS = 550.0;
+float VERNIER_BIAS = 550.0;
 
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
@@ -60,7 +62,7 @@ char const *rowTwoLCD = "               "; // textrow one of LCD
 Servo esc; // Create a Servo object
 
 // Store the state of motor test program
-                           // prog A, B, C
+                  // program A,       B,       C
 uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, 0};
 
 // Create the 3 timers for each motortestprogram
@@ -114,17 +116,16 @@ void setup()
     buttons[i].interval(25);                         // debounce interval in ms
   }
 
-// https://github.com/YukiSakuma/arduino/blob/a0d36da69587d03019de49ea383efab30b5f0fac/VernierAnalogAutoID/VernierAnalogAutoID.ino#L74C1-L74C102
+
 #ifdef CAL_VERNIER
-  CalibrateVernier();
+  CalibrateVernier(); /* Calibrate Vernier */
 #endif /* CAL_VERNIER */
 
-/* Calibrate shunt */
 #ifdef CAL_SHUNT
-  CalibrateShunt();
+  CalibrateShunt(); /* Calibrate shunt */
 #endif /* CAL_SHUNT*/
 
-  // measuremunt datastructure
+  // mMasuremunt datastructure
   output2Serial(pData); // output header row to serial
 
   // motor
@@ -135,11 +136,12 @@ void loop()
 {
   lastReadTime = millis();
   handleButtons(pButtonStates);
+  
   calcPower(pData);
 
-  // motorTest(testProgram);
+  motorTest(testProgram);
   // readVernier();
-  // output2Serial(pData);
+  output2Serial(pData);
 }
 
 /*
@@ -248,8 +250,6 @@ void CalibrateShunt(void)
  */
 void CalibrateVernier(void)
 {
-  float force = 0.0;
-  float voltage = 0.0;
   float readValue = 0.0;
 
 #if defined(LCD) && (LCD == 1)
@@ -274,10 +274,10 @@ void CalibrateVernier(void)
 
   readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  VENIER_BIAS = readValue;
+  VERNIER_BIAS = readValue;
 #ifdef DEBUG_VERNIER
-  Serial.print("VENIER_BIAS:\t");
-  Serial.println(VENIER_BIAS);
+  Serial.print("VERNIER_BIAS:\t");
+  Serial.println(VERNIER_BIAS);
 #endif
 
 #if defined(LCD) && (LCD == 1)
@@ -341,14 +341,14 @@ float readVernier()
 
   // #ifdef DEBUG
   // Serial.print("raw Force (ADC):\t");
-  // Serial.print(VENIER_BIAS);
+  // Serial.print(VERNIER_BIAS);
   // #endif
   // for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
   //   readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
 
   // readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
 
-  readValue -= VENIER_BIAS; // Correct VENIER_BIAS
+  readValue -= VERNIER_BIAS; // Correct VERNIER_BIAS
 
   voltage = (readValue / 1023.0) * 5.0; // ADC terug naar spanning
   force = voltage * 23.45; // multiply by [N/V]
@@ -461,9 +461,9 @@ void motorTest(enum testPrograms prog)
       timer_motor_test_a.update(); // Update the timer
 
       // Put the vernier sensor read func here (can be another timer if needed)
-      readVernier();
-      calcPower(pData);
-      output2Serial(pData);
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
       {
@@ -487,8 +487,11 @@ void motorTest(enum testPrograms prog)
     while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
     {
       timer_motor_test_b.update(); // Update the timer
+
       // Put the vernier sensor read func here (can be another timer if needed)
-      // pData-> force = readVernier();
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
 
       if (timer_expired >= STEPS) // Check if the loop has been played 9 times
       {
@@ -500,9 +503,8 @@ void motorTest(enum testPrograms prog)
     break; /* Program B */
 
   case C:
-    /*Testprogramma C Ramp
-    Dit laat de motor direct op fullspeed gaan
-    */
+    /* Testprogramma C Ramp
+    Dit laat de motor direct op fullspeed gaan*/
 
     timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
     while (continuous_motor_test)
@@ -754,7 +756,6 @@ void prog_c_timer_handler(void)
     Handles different system states on the LCD screen
     Parameters: class enumator with the current State
  */
-
 void userInterface(systemState cState)
 {
   // unsigned char y; // y loop index
