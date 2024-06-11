@@ -135,10 +135,11 @@ void loop()
 {
   lastReadTime = millis();
   handleButtons(pButtonStates);
+  calcPower(pData);
 
-  motorTest(testProgram);
-  readVernier();
-  output2Serial(pData);
+  // motorTest(testProgram);
+  // readVernier();
+  // output2Serial(pData);
 }
 
 /*
@@ -175,7 +176,7 @@ void CalibrateShunt(void)
   Serial.println((String) "ADCval average: " + ADCval);
 #endif
 
-  ADC_A_Step = CAL_AMP / ADCval; // Calculate amount of current per ADC-value step
+  ADC_A_Step = (float) CAL_AMP / ADCval; // Calculate amount of current per ADC-value step
 
   dtostrf(ADC_A_Step, 2, 5, strBuf); // Convert float to char-array
 
@@ -388,6 +389,10 @@ float calcPower(PMEASUREMENT p)
   p->voltage = (voltVal * ADC_V_Step); // Calculate voltage in volts
   p->current = (ampVal * ADC_A_Step);  // Calculate current in amperes
 
+  #ifdef DEBUG // test 
+  Serial.print("analog read amp:\t");
+  Serial.println((ampVal * ADC_A_Step));
+  #endif
   power = p->voltage * p->current; // Calculate power using the formula: power = voltage * current
 
   p->power = power; // Store calculated power in the measurement structure
@@ -405,7 +410,7 @@ void output2Serial(PMEASUREMENT p)
   if (currentState == systemState::Setup) // if system is in setup mode
   {
     currentState = systemState::Output; // put system to Output state
-    Serial.println("time (ms), force_raw (ADC), force (N), voltage (V), current (mA), power (W)"); // print header row
+    Serial.println("time (ms), force_raw (ADC), force (N), voltage (V), current (A), power (W)"); // print header row
   }
   else // print data
   {
