@@ -111,7 +111,9 @@ enum testPrograms // Motor test programm
 {
     A, // Continuos
     B, // Ladder
-    C  // Ramp?
+    C,  // Ramp?
+    D, // forward
+    E   // backward
 }; 
 
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
@@ -121,6 +123,8 @@ void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
 void prog_b_timer_handler(void);
 void prog_c_timer_handler(void);
+void prog_d_timer_handler(void);
+void prog_e_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 float readVernier(); // read Vernier input and return its value
