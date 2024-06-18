@@ -498,7 +498,7 @@ void motorTest(enum testPrograms prog)
       if (timer_expired >= STEPS) // Check if the loop has been played 9 times
       {
 
-        prog = B;
+        prog = A;
 
         continuous_motor_test = false;      // Set bool to false to stop loop
         timer_expired = 0;                  // Reset timer_expired
@@ -536,6 +536,7 @@ void motorTest(enum testPrograms prog)
       output2Serial(pData); // write data to Serial
       if (timer_expired >= 1150)
       {
+        prog = E;
         continuous_motor_test = false;      // Set bool to false to stop loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -555,6 +556,7 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= 1150)
       {
+        prog = D;
         continuous_motor_test = false;      // Set bool to false to stop loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
