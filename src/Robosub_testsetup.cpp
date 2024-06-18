@@ -705,7 +705,7 @@ void prog_b_timer_handler(void)
 #endif
 
     if (micros_prog_b <= MTR_MIN_CLOCKWISE)
-      motorTestState[B] = FINISHED; // next state of prog B
+      motorTestState[B] = NEUTRAL; // next state of prog B
     break;                          /* end of case LOWER */
 
   case FINISHED:
