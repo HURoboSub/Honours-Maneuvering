@@ -9,7 +9,7 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 29-05-2024
+ * Date: 18-06-2024
  *
  * Version: 2.0.0
  *
@@ -23,13 +23,13 @@
 
 /* */
 #define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-#define DEBUG_VERNIER
-#define CAL_VERNIER
+// #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
-#define CAL_SHUNT // Whether to calibrate shunt at the beginning
+// #define CAL_VERNIER
+// #define CAL_SHUNT // Whether to calibrate shunt at the beginning
 
-#define LCD 1 // Toggle LCD 0 to 1
+#define LCD 0 // Toggle LCD 0 to 1
 
 enum testPrograms testProgram = A; // which testprogram to run
 
@@ -127,9 +127,10 @@ void setup()
   CalibrateShunt(); /* Calibrate shunt */
 #endif              /* CAL_SHUNT*/
 
-  // mMasuremunt datastructure
+  selectProgram();
+  // Measuremunt datastructure
   output2Serial(pData); // output header row to serial
-
+  
   // motor
   initMotor(); // Initialize the ESC
 }
@@ -142,7 +143,6 @@ void loop()
   calcPower(pData);
 
   motorTest(testProgram);
-  // readVernier();
   output2Serial(pData);
 }
 
@@ -287,6 +287,42 @@ void CalibrateVernier(void)
   lcd.home();               // LCD cursor to 0,0
   lcd.print("Calibrated!"); // Show instruction on 1 LCD-row
 #endif
+}
+
+void selectProgram(void)
+{
+  // Herhaal voor elk programma
+  for(int i=0; i <= E; ++i)
+  {
+    testPrograms thisProgram = (testPrograms)i;
+    
+    #if defined(LCD) && (LCD == 1)
+      lcd.clear();
+      lcd.home(); // LCD cursor to 0,0
+      lcd.print((String)"Prog" + thisProgram); // Show instruction on 1 LCD-row
+      lcd.setCursor(0, 1);  // LCD cursor to row 2
+      lcd.print("Blauw voor ok"); // Show instruction on 2nd LCD-row
+    #endif
+
+    #ifdef DEBUG
+      Serial.println((String)"Prog: " + thisProgram); // Show instruction on 1 LCD-row
+      Serial.println("Blauw voor ok");
+    #endif
+
+    do // Only continue after a button press
+    {
+      handleButtons(pButtonStates);
+    } while ((buttonStates[2] == false) && (buttonStates[1] == false) && (buttonStates[0] == false));
+
+    if( buttonStates[2] == true)
+    {
+      Serial.println((String)"program " + thisProgram);
+      testProgram = thisProgram; // Set testprogram to this program
+      break; // Ga uit deze for loop
+    }
+
+  }
+
 }
 
 /*
@@ -446,14 +482,9 @@ void motorTest(enum testPrograms prog)
 {
   currentState = systemState::Testing; // put system to Testing
 
-#ifdef DEBUG
-  Serial.println((String) "Testing motorprogram:" + (int)prog);
-#endif
-
   switch (prog)
   {
   case A:
-    initMotor();
     timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     continuous_motor_test = true;
@@ -468,7 +499,6 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
       {
-        prog = B;
         continuous_motor_test = false;      // Set the bool to false to stop the while loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -479,9 +509,6 @@ void motorTest(enum testPrograms prog)
 
   case B:
 /* Testprogramma B LADDER */
-#ifdef DEBUG
-    Serial.println("in testprogramma B");
-#endif
     timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler); // Set the timer
                                                               //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
                                                               //    */
@@ -497,9 +524,6 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= STEPS) // Check if the loop has been played 9 times
       {
-
-        prog = A;
-
         continuous_motor_test = false;      // Set bool to false to stop loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -508,8 +532,8 @@ void motorTest(enum testPrograms prog)
     break; /* Program B */
 
   case C:
-    /* Testprogramma C Ramp
-    Dit laat de motor direct op fullspeed gaan*/
+    /* Testprogramma C fullspeed
+    Dit laat de motor direct op fullspeed vooruit gaan*/
 
     timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
     while (continuous_motor_test)
@@ -526,6 +550,9 @@ void motorTest(enum testPrograms prog)
     break; /* Program C */
 
   case D:
+    /* Testprogramma D fullspeed achteruit
+       Dit laat de motor direct op fullspeed gaan. */
+
     timer_motor_test_d.set(DUR_PROG_A, prog_d_timer_handler); // Set the timer
     while (continuous_motor_test)
     {

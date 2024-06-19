@@ -111,13 +111,14 @@ enum testPrograms // Motor test programm
 {
     A, // Continuos
     B, // Ladder
-    C,  // Ramp?
+    C, // Ramp
     D, // forward
-    E   // backward
+    E  // backward
 }; 
 
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
 void CalibrateVernier(void); 
+void selectProgram(void);
 void initMotor(void); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
