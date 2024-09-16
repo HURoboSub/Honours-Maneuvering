@@ -9,7 +9,7 @@
  *  Rutger Jansen
  *
  * Hogeschool Utrecht
- * Date: 29-04-2024
+ * Date: 16-09-2024
  *
  *
  * CHANGELOG:
@@ -41,7 +41,7 @@
 #define MTR_NEUTRAL 1500 // µs rest thrust
 #define MTR_MAX_ANTICLOCKWISE 2000 // µs for max speed anticlockwise
 
-#define MRT_INCREMENT 1 // how much the micros should increase each time
+#define MTR_INCREMENT 1 // How much the micros should increase each time
 
 #define THRUST_LADDER 50
 #define DUR_PROG_A 5
@@ -107,17 +107,18 @@ enum testPhasesC
 #define LOWER 2
 #define FINISHED 3
 
-enum testPrograms // Motor test programm
+enum testPrograms // Motor test programs
 {
     A, // Continuos
     B, // Ladder
-    C,  // Ramp?
-    D, // forward
-    E   // backward
+    C, // Ramp
+    D, // Forward
+    E  // Backward
 }; 
 
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
-void CalibrateVernier(void); 
+void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
+void selectProgram(void);
 void initMotor(void); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
@@ -127,10 +128,10 @@ void prog_d_timer_handler(void);
 void prog_e_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
-float readVernier(); // read Vernier input and return its value
-float calcPower(PMEASUREMENT p); // calculate power and store in measurement structure
+float readVernier(); // Read Vernier input and return its value
+float calcPower(PMEASUREMENT p); // Calculate power and store in measurement structure
 void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
 // void LCD_show(char **str); // UNUSED single LCD_Show function to handle .clear .cursor .print at once
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 
-#endif
+#endif /* MAIN_H */

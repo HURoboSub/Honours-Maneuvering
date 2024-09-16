@@ -9,27 +9,27 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 29-05-2024
+ * Date: 16-09-2024
  *
  * Version: 2.0.0
  *
  * CHANGELOG:
+ * 
  * To Log the serialprints to textfile
  *    1. Open new platform io terminal
  *    2. type command 'pio device monitor > output_logs.txt'
  */
 
-#include "main.h" // main header file
+#include "main.h" // Main header file
 
-/* */
-#define DEBUG // (Serial) DEBUG mode (un)comment to toggle
-#define DEBUG_VERNIER
-#define CAL_VERNIER
+#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
+// #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
-#define CAL_SHUNT // Whether to calibrate shunt at the beginning
+// #define CAL_VERNIER
+// #define CAL_SHUNT // Whether to calibrate shunt at the beginning
 
-#define LCD 1 // Toggle LCD 0 to 1
+#define LCD 0 // Toggle LCD 0 to 1
 
 enum testPrograms testProgram = A; // which testprogram to run
 
@@ -129,7 +129,7 @@ void setup()
 
   selectProgram(); // Ask to select program
   output2Serial(pData); // output header row to serial
-
+  
   // motor
   initMotor(); // Initialize the ESC
 }
@@ -142,7 +142,6 @@ void loop()
   calcPower(pData);
 
   motorTest(testProgram);
-  // readVernier();
   output2Serial(pData);
 }
 
@@ -247,8 +246,8 @@ void CalibrateShunt(void)
 }
 
 /*
-  Function:
-  Parameters:
+  Function: CalibrateVernier
+  Parameters: void
  */
 void CalibrateVernier(void)
 {
@@ -290,10 +289,50 @@ void CalibrateVernier(void)
 }
 
 /*
-  Function:
-  Parameters:
+  Function: selectProgram(
+  lets the user select a motor program via a button press
+  Parameters: void
  */
-void initMotor()
+void selectProgram(void)
+{
+  // Repeat for all programs (A to E)
+  for (int i = 0; i <= E; ++i)
+  {
+    testPrograms thisProgram = (testPrograms)i;
+
+#if defined(LCD) && (LCD == 1)
+    lcd.clear();
+    lcd.home();                               // LCD cursor to 0,0
+    lcd.print((String) "Prog" + thisProgram); // Show instruction on 1 LCD-row
+    lcd.setCursor(0, 1);                      // LCD cursor to row 2
+    lcd.print("Blauw voor ok");               // Show instruction on 2nd LCD-row
+#endif
+
+#ifdef DEBUG
+    Serial.println((String) "Prog: " + thisProgram); // Show instruction on 1 LCD-row
+    Serial.println("Blauw voor ok");
+#endif
+
+    do // Only continue after a button press
+    {
+      handleButtons(pButtonStates);
+    } while ((buttonStates[2] == false) && (buttonStates[1] == false) && (buttonStates[0] == false));
+
+    if (buttonStates[2] == true)
+    {
+      Serial.println((String) "program " + thisProgram);
+      testProgram = thisProgram; // Set testprogram to this program
+      break;                     // Exit this for loop
+    }
+  }
+}
+
+/*
+  Function: InitMotor
+  Puts motor to MTR_NEUTRAL µs posittion
+  Parameters: void
+ */
+void initMotor(void)
 {
   esc.attach(ESC_PIN); // Attach the ESC to the specified pin
   delay(20);
@@ -433,27 +472,18 @@ void output2Serial(PMEASUREMENT p)
 }
 
 /*
-Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
-*/
-
-/*
   Function: motorTest
   Deze functie laat de motor door CYCLES standen lopen. DUR_PROG_A, DUR_PROG_B
   Parameters: enum testPrograms prog, which tesprogram to run
-    deps: TimerEvent.h
+  Deps: TimerEvent.h
  */
 void motorTest(enum testPrograms prog)
 {
   currentState = systemState::Testing; // put system to Testing
 
-#ifdef DEBUG
-  Serial.println((String) "Testing motorprogram:" + (int)prog);
-#endif
-
   switch (prog)
   {
   case A:
-    initMotor();
     timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     continuous_motor_test = true;
@@ -468,7 +498,6 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
       {
-        prog = B;
         continuous_motor_test = false;      // Set the bool to false to stop the while loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -479,9 +508,6 @@ void motorTest(enum testPrograms prog)
 
   case B:
 /* Testprogramma B LADDER */
-#ifdef DEBUG
-    Serial.println("in testprogramma B");
-#endif
     timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler); // Set the timer
                                                               //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
                                                               //    */
@@ -497,9 +523,6 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= STEPS) // Check if the loop has been played 9 times
       {
-
-        prog = A;
-
         continuous_motor_test = false;      // Set bool to false to stop loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -508,8 +531,8 @@ void motorTest(enum testPrograms prog)
     break; /* Program B */
 
   case C:
-    /* Testprogramma C Ramp
-    Dit laat de motor direct op fullspeed gaan*/
+    /* Testprogramma C fullspeed
+    Dit laat de motor direct op fullspeed vooruit gaan*/
 
     timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
     while (continuous_motor_test)
@@ -526,6 +549,9 @@ void motorTest(enum testPrograms prog)
     break; /* Program C */
 
   case D:
+    /* Testprogramma D fullspeed achteruit
+       Dit laat de motor direct op fullspeed gaan. */
+
     timer_motor_test_d.set(DUR_PROG_A, prog_d_timer_handler); // Set the timer
     while (continuous_motor_test)
     {
@@ -534,6 +560,7 @@ void motorTest(enum testPrograms prog)
       readVernier();        // force [N]
       calcPower(pData);     // motor [A] & [V]
       output2Serial(pData); // write data to Serial
+
       if (timer_expired >= 1150)
       {
         prog = E;
@@ -617,7 +644,7 @@ void prog_a_timer_handler(void)
     else
     {
 
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
 #ifdef DEBUG_MOTOR
       Serial.println((String) "micros_prog_a = " + micros_prog_a);
 #endif
@@ -641,7 +668,7 @@ void prog_a_timer_handler(void)
     }
     else
     {
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MTR_INCREMENT);
     }
     break; // End of subtracting
 
@@ -659,7 +686,7 @@ void prog_a_timer_handler(void)
       }
     }
     else
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
     break; // End of ADDING_HALVE
 
   default:
@@ -706,7 +733,7 @@ void prog_b_timer_handler(void)
 
     if (micros_prog_b <= MTR_MIN_CLOCKWISE)
       motorTestState[B] = NEUTRAL; // next state of prog B
-    break;                          /* end of case LOWER */
+    break;                         /* end of case LOWER */
 
   case FINISHED:
     esc.writeMicroseconds(MTR_NEUTRAL);
@@ -767,6 +794,11 @@ void prog_c_timer_handler(void)
   timer_expired += 1; // Add one to timer_expired
 }
 
+/*
+  Function: prog_d_timer_handler
+
+  Parameters: void
+*/
 void prog_d_timer_handler(void)
 {
 #ifdef DEBUG_MOTOR
@@ -806,7 +838,7 @@ void prog_d_timer_handler(void)
     else
     {
 
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
 #ifdef DEBUG_MOTOR
       Serial.println((String) "micros_prog_a = " + micros_prog_a);
 #endif
@@ -830,11 +862,17 @@ void prog_d_timer_handler(void)
     }
     else
     {
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MTR_INCREMENT);
     }
     break; // End of subtracting
   }
 }
+
+/*
+  Function: prog_e_timer_handler
+
+  Parameters: void
+*/
 
 void prog_e_timer_handler(void)
 {
@@ -875,7 +913,7 @@ void prog_e_timer_handler(void)
     else
     {
 
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MTR_INCREMENT);
 #ifdef DEBUG_MOTOR
       Serial.println((String) "micros_prog_a = " + micros_prog_a);
 #endif
@@ -899,7 +937,7 @@ void prog_e_timer_handler(void)
     }
     else
     {
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MRT_INCREMENT);
+      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
     }
     break; // End of subtracting
   }
