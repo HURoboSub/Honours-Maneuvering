@@ -127,7 +127,7 @@ void setup()
   CalibrateShunt(); /* Calibrate shunt */
 #endif              /* CAL_SHUNT*/
 
-  // mMasuremunt datastructure
+  selectProgram(); // Ask to select program
   output2Serial(pData); // output header row to serial
 
   // motor
