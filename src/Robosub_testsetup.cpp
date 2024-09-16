@@ -294,10 +294,8 @@ void CalibrateVernier(void)
  */
 void selectProgram(void)
 {
-  // Repeat for all programs (A to E)
-  for (int i = 0; i <= E; ++i)
-  {
-    testPrograms thisProgram = (testPrograms)i;
+
+    testPrograms thisProgram = A;
 
 #if defined(LCD) && (LCD == 1)
     lcd.clear();
@@ -312,18 +310,15 @@ void selectProgram(void)
     Serial.println("Blauw voor ok");
 #endif
 
-    do // Only continue after a button press
-    {
-      handleButtons(pButtonStates);
-    } while ((buttonStates[2] == false) && (buttonStates[1] == false) && (buttonStates[0] == false));
+  do
+  {
+    handleButtons(pButtonStates);
+  } while (buttonStates[2] == false); // Wait until most left button has been pressed
 
-    if (buttonStates[2] == true)
-    {
-      Serial.println((String) "program " + thisProgram);
-      testProgram = thisProgram; // Set testprogram to this program
-      break;                     // Exit this for loop
-    }
-  }
+#if defined(LCD) && (LCD == 1)
+  lcd.clear();
+#endif
+
 }
 
 /*
@@ -479,6 +474,11 @@ void output2Serial(PMEASUREMENT p)
 void motorTest(enum testPrograms prog)
 {
   currentState = systemState::Testing; // put system to Testing
+
+  #if defined(LCD) && (LCD == 1)
+  lcd.clear();
+  lcd.print("Testing ;)");
+  #endif
 
   switch (prog)
   {
