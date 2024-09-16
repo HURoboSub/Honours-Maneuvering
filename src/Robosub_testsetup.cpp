@@ -26,8 +26,8 @@
 // #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
-// #define CAL_VERNIER
-// #define CAL_SHUNT // Whether to calibrate shunt at the beginning
+#define CAL_VERNIER // Whether to calibrate Vernier at startup
+#define CAL_SHUNT // Whether to calibrate shunt at startup
 
 #define LCD 1 // Toggle LCD 0 to 1
 
@@ -228,7 +228,6 @@ void CalibrateShunt(void)
   lcd.print(" V/Step");
 #endif
 
-  //   delay(1000);
   // finished wait for press yellow
   lcd.setCursor(0, 1);
   lcd.print("Press green");
@@ -309,7 +308,7 @@ void selectProgram(void)
 #endif
 
 #ifdef DEBUG
-    Serial.println((String) "Prog: " + thisProgram); // Show instruction on 1 LCD-row
+    Serial.println((String) "Testprogramma: " + thisProgram); // Show instruction on 1 LCD-row
     Serial.println("Blauw voor ok");
 #endif
 
