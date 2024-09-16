@@ -29,7 +29,7 @@
 // #define CAL_VERNIER
 // #define CAL_SHUNT // Whether to calibrate shunt at the beginning
 
-#define LCD 0 // Toggle LCD 0 to 1
+#define LCD 1 // Toggle LCD 0 to 1
 
 enum testPrograms testProgram = A; // which testprogram to run
 
