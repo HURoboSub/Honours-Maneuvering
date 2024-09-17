@@ -143,12 +143,6 @@ void loop()
 
   motorTest(testProgram);
   output2Serial(pData);
-
-  // // TEST CODE
-  // for (uint8_t i = 0; i < NUM_BUTTONS; i++)
-  // {
-  //   waitforButton(i);
-  // }
   
 }
 
