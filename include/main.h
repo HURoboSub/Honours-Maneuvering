@@ -128,7 +128,7 @@ void prog_d_timer_handler(void);
 void prog_e_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
-void waitforButtonPress(int btn_i); // 
+void waitforButton(uint8_t btn_i); // 
 
 float readVernier(); // Read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // Calculate power and store in measurement structure

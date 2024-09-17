@@ -136,19 +136,19 @@ void setup()
 
 void loop()
 {
-  // lastReadTime = millis();
-  // handleButtons(pButtonStates);
+  lastReadTime = millis();
+  handleButtons(pButtonStates);
 
-  // calcPower(pData);
+  calcPower(pData);
 
-  // motorTest(testProgram);
-  // output2Serial(pData);
+  motorTest(testProgram);
+  output2Serial(pData);
 
-  // TEST CODE
-  for (char i = 0; i < NUM_BUTTONS; i++)
-  {
-    waitforButtonPress(i);
-  }
+  // // TEST CODE
+  // for (uint8_t i = 0; i < NUM_BUTTONS; i++)
+  // {
+  //   waitforButton(i);
+  // }
   
 }
 
@@ -172,10 +172,7 @@ void CalibrateShunt(void)
   lcd.home();                                  // LCD cursor to 0,0
   lcd.print((String)CAL_AMP + "A aansluiten"); // Show instruction on 1 LCD-row
 
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // Wait until most left button has been pressed
+  waitforButton(0); // Wait until most left button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
     ADCval += (float)analogRead(AMP_PIN); // Read AMP_PIN NUM_ADC_READINGS times and sum it
@@ -209,10 +206,7 @@ void CalibrateShunt(void)
   lcd.setCursor(0, 1);                          // LCD cursor to row 2
   lcd.print((String)CAL_VOLT + "V aansluiten"); // Show instruction on 2nd LCD-row
 
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // Wait until most left button has been pressed
+  waitforButton(0); // Wait until most left button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
     ADCval += (float)analogRead(VOLT_PIN); // Read VOLT_PIN NUM_ADC_READINGS times and sum it
@@ -242,10 +236,7 @@ void CalibrateShunt(void)
   Serial.println("Press green");
 #endif
 
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[1] == false); // wacht totdat de meest midelste knop is ingedrukt
+  waitforButton(1); // wacht totdat de meest midelste knop is ingedruk
 
   lcd.clear(); // leeghalen lcd scherm
   lcd.home();
@@ -267,10 +258,7 @@ void CalibrateVernier(void)
   lcd.print("Press yellow");
 #endif
 
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[0] == false); // Wait until most left button has been pressed
+  waitforButton(0); // Wait until most left button has been pressed
 
   // take average of 10 measurements
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
@@ -317,10 +305,7 @@ void selectProgram(void)
     Serial.println("Blauw voor ok");
 #endif
 
-  do
-  {
-    handleButtons(pButtonStates);
-  } while (buttonStates[2] == false); // Wait until most left button has been pressed
+  waitforButton(2); // Wait until most left button has been pressed
 
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
@@ -365,30 +350,37 @@ void handleButtons(bool *pState)
 /*
   Function: wait for single button do be pressed
   Parameters: 
-    pS: pointer to buttonstatearray
-    btn_i: button index
+    btn_i: index of the button
  */
-void waitforButtonPress(int btn_i)
+void waitforButton(uint8_t btn_i)
 {
 #ifdef DEBUG
-  Serial.println((String) "Waiting for press of button: " + btn_i);
+  Serial.print("Waiting for buttonpress of: ");
+  Serial.println(btn_i);
 #endif
 
-  // While the 
+  // Repetively read the state of the button with index btn_i
   do
   {
-    if (btn_i > NUM_BUTTONS)
+    if (btn_i >= 0 && btn_i <= NUM_BUTTONS )
     {
-      Serial.println((String) "Error btn_i > NUM_BUTTONS");
-      break;
-    }
     buttons[btn_i].update(); // Update the Bounce instance
 
     buttonStates[btn_i] = buttons[btn_i].fell(); // change right value of this button state
 
 #ifdef DEBUG
     if (buttons[btn_i].fell())
-      Serial.println((String) "button: " + btn_i + " pressed\t state: " + buttonStates[btn_i]);
+    {
+      Serial.print("button: ");
+      Serial.print(btn_i);
+      Serial.println((String)" pressed\t state: " + buttonStates[btn_i]);
+    }
+    }
+    else
+     {
+        Serial.println((String) "Error btn_i not in NUM_BUTTONS");
+        break;
+    }
 #endif
 
   } while (buttonStates[btn_i] == false); // wait until button with btn_i is pressed
