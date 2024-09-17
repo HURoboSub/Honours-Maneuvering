@@ -136,13 +136,20 @@ void setup()
 
 void loop()
 {
-  lastReadTime = millis();
-  handleButtons(pButtonStates);
+  // lastReadTime = millis();
+  // handleButtons(pButtonStates);
 
-  calcPower(pData);
+  // calcPower(pData);
 
-  motorTest(testProgram);
-  output2Serial(pData);
+  // motorTest(testProgram);
+  // output2Serial(pData);
+
+  // TEST CODE
+  for (char i = 0; i < NUM_BUTTONS; i++)
+  {
+    waitforButtonPress(i);
+  }
+  
 }
 
 /*
@@ -337,16 +344,14 @@ void initMotor(void)
 
 /*
   Function: handle button presses
-  Parameters: pS, pointer to i'th index of buttonstatearray
+  Parameters: pState, pointer to i'th index of buttonstatearray
  */
 void handleButtons(bool *pState)
 {
-
   // for the NUM_BUTTONS increase i and state pointer
   for (int i = 0; i < NUM_BUTTONS; pState++, i++)
   {
-    // Update the Bounce instance :
-    buttons[i].update();
+    buttons[i].update(); // Update the Bounce instance
 
     *pState = buttons[i].fell(); // change right value of this button state
 
@@ -355,6 +360,38 @@ void handleButtons(bool *pState)
       Serial.println((String) "button: " + i + " pressed\t state: " + *pState);
 #endif
   }
+}
+
+/*
+  Function: wait for single button do be pressed
+  Parameters: 
+    pS: pointer to buttonstatearray
+    btn_i: button index
+ */
+void waitforButtonPress(int btn_i)
+{
+#ifdef DEBUG
+  Serial.println((String) "Waiting for press of button: " + btn_i);
+#endif
+
+  // While the 
+  do
+  {
+    if (btn_i > NUM_BUTTONS)
+    {
+      Serial.println((String) "Error btn_i > NUM_BUTTONS");
+      break;
+    }
+    buttons[btn_i].update(); // Update the Bounce instance
+
+    buttonStates[btn_i] = buttons[btn_i].fell(); // change right value of this button state
+
+#ifdef DEBUG
+    if (buttons[btn_i].fell())
+      Serial.println((String) "button: " + btn_i + " pressed\t state: " + buttonStates[btn_i]);
+#endif
+
+  } while (buttonStates[btn_i] == false); // wait until button with btn_i is pressed
 }
 
 /*
