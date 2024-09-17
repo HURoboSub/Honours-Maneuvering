@@ -22,11 +22,11 @@
 
 #include <Arduino.h>
 
-#include <Wire.h>       // Two Wire Interface Bus (I2C)
+#include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 #include <LiquidCrystal_I2C.h> // LCD i2c screen
 #include <Servo.h>      // Servo motor library
 #include <TimerEvent.h> // Timer Event Library to use interrupt timer for motor PWM
-#include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
+#include <Wire.h>       // Two Wire Interface Bus (I2C)
 
 /* buttons */
 #define NUM_BUTTONS 3
