@@ -42,12 +42,9 @@ uint8_t ESC_PIN = 3; // Define ESC control pin
 uint8_t VERNIER_PIN = A3; // Define Vernier analog read
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {6, 5, 4}; // Define ESC control pin D6 D5 D4
-enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
-
 Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
-
 
 
 /* ADC Calibration values */

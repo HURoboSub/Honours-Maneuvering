@@ -80,6 +80,9 @@ struct measurement // structure containing the measurements
 typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
 typedef MEASUREMENT       *PMEASUREMENT;    // PMEASUREMENT == struct measurement*
 
+// BUTTONS
+enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
+
 // enumator for the system states
 enum class systemState {
     Setup,       // S0 Init setup state
