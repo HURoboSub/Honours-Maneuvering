@@ -9,8 +9,9 @@
  *  Rutger Jansen
  *
  * Hogeschool Utrecht
- * Date: 16-09-2024
+ * Date: 18-09-2024
  *
+ * Version: 2.1.0
  *
  * CHANGELOG:
  *
@@ -79,6 +80,9 @@ struct measurement // structure containing the measurements
 typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
 typedef MEASUREMENT       *PMEASUREMENT;    // PMEASUREMENT == struct measurement*
 
+// BUTTONS
+enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
+
 // enumator for the system states
 enum class systemState {
     Setup,       // S0 Init setup state
@@ -128,6 +132,8 @@ void prog_d_timer_handler(void);
 void prog_e_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
+void waitforButton(enum buttonIndices btn_i); // wait for single button to be pressed
+
 float readVernier(); // Read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // Calculate power and store in measurement structure
 void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
