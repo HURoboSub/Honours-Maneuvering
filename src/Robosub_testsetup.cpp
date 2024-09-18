@@ -9,9 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 16-09-2024
+ * Date: 18-09-2024
  *
- * Version: 2.0.0
+ * Version: 2.1.0
  *
  * CHANGELOG:
  * 
@@ -42,9 +42,13 @@ uint8_t ESC_PIN = 3; // Define ESC control pin
 uint8_t VERNIER_PIN = A3; // Define Vernier analog read
 
 const uint8_t BUTTON_PINS[NUM_BUTTONS] = {6, 5, 4}; // Define ESC control pin D6 D5 D4
+enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
+
 Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
+
+
 
 /* ADC Calibration values */
 float ADC_V_Step = 0.01852;
@@ -140,10 +144,10 @@ void loop()
   handleButtons(pButtonStates);
 
   calcPower(pData);
-
   motorTest(testProgram);
-  output2Serial(pData);
-  
+
+  // output2Serial(pData);
+
 }
 
 /*
@@ -166,7 +170,7 @@ void CalibrateShunt(void)
   lcd.home();                                  // LCD cursor to 0,0
   lcd.print((String)CAL_AMP + "A aansluiten"); // Show instruction on 1 LCD-row
 
-  waitforButton(0); // Wait until most left button has been pressed
+  waitforButton(YELLOW); // Wait until yellow button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
     ADCval += (float)analogRead(AMP_PIN); // Read AMP_PIN NUM_ADC_READINGS times and sum it
@@ -200,7 +204,7 @@ void CalibrateShunt(void)
   lcd.setCursor(0, 1);                          // LCD cursor to row 2
   lcd.print((String)CAL_VOLT + "V aansluiten"); // Show instruction on 2nd LCD-row
 
-  waitforButton(0); // Wait until most left button has been pressed
+  waitforButton(YELLOW); // Wait until yellow button has been pressed
 
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
     ADCval += (float)analogRead(VOLT_PIN); // Read VOLT_PIN NUM_ADC_READINGS times and sum it
@@ -230,7 +234,7 @@ void CalibrateShunt(void)
   Serial.println("Press green");
 #endif
 
-  waitforButton(1); // wacht totdat de meest midelste knop is ingedruk
+  waitforButton(GREEN); // Wait until green button has been pressed
 
   lcd.clear(); // leeghalen lcd scherm
   lcd.home();
@@ -252,7 +256,7 @@ void CalibrateVernier(void)
   lcd.print("Press yellow");
 #endif
 
-  waitforButton(0); // Wait until most left button has been pressed
+  waitforButton(YELLOW); // Wait until yellow button has been pressed
 
   // take average of 10 measurements
   for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
@@ -291,15 +295,15 @@ void selectProgram(void)
     lcd.home();                               // LCD cursor to 0,0
     lcd.print((String) "Prog" + thisProgram); // Show instruction on 1 LCD-row
     lcd.setCursor(0, 1);                      // LCD cursor to row 2
-    lcd.print("Blauw voor ok");               // Show instruction on 2nd LCD-row
+    lcd.print("Blue for ok");               // Show instruction on 2nd LCD-row
 #endif
 
 #ifdef DEBUG
     Serial.println((String) "Testprogramma: " + thisProgram); // Show instruction on 1 LCD-row
-    Serial.println("Blauw voor ok");
+    Serial.println("Press blue for ok");
 #endif
 
-  waitforButton(2); // Wait until most left button has been pressed
+  waitforButton(BLUE); // Wait until most left button has been pressed
 
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
@@ -346,7 +350,7 @@ void handleButtons(bool *pState)
   Parameters: 
     btn_i: index of the button
  */
-void waitforButton(uint8_t btn_i)
+void waitforButton(enum buttonIndices btn_i)
 {
 #ifdef DEBUG
   Serial.print("Waiting for buttonpress of: ");
@@ -356,7 +360,7 @@ void waitforButton(uint8_t btn_i)
   // Repetively read the state of the button with index btn_i
   do
   {
-    if (btn_i >= 0 && btn_i <= NUM_BUTTONS )
+    if (btn_i >= 0 && btn_i <= NUM_BUTTONS ) // if btn_i is a valid value
     {
     buttons[btn_i].update(); // Update the Bounce instance
 
@@ -370,7 +374,7 @@ void waitforButton(uint8_t btn_i)
       Serial.println((String)" pressed\t state: " + buttonStates[btn_i]);
     }
     }
-    else
+    else // btn_i not valid
      {
         Serial.println((String) "Error btn_i not in NUM_BUTTONS");
         break;
@@ -464,10 +468,10 @@ float calcPower(PMEASUREMENT p)
  */
 void output2Serial(PMEASUREMENT p)
 {
-  if (currentState == systemState::Setup) // if system is in setup mode
+  if (currentState == systemState::Setup || currentState == systemState::Calibrating) // if system is in setup or Calibrating mode
   {
     currentState = systemState::Output;                                                           // put system to Output state
-    Serial.println("time (ms), force_raw (ADC), force (N), voltage (V), current (A), power (W)"); // print header row
+    Serial.println("Time (ms), Force_raw (ADC), Force (N), Voltage (V), Current (A), Power (W)"); // print header row
   }
   else // print data
   {

@@ -9,8 +9,9 @@
  *  Rutger Jansen
  *
  * Hogeschool Utrecht
- * Date: 16-09-2024
+ * Date: 18-09-2024
  *
+ * Version: 2.1.0
  *
  * CHANGELOG:
  *
@@ -128,7 +129,7 @@ void prog_d_timer_handler(void);
 void prog_e_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
-void waitforButton(uint8_t btn_i); // 
+void waitforButton(enum buttonIndices btn_i); // 
 
 float readVernier(); // Read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // Calculate power and store in measurement structure
