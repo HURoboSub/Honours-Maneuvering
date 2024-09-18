@@ -46,7 +46,6 @@ Bounce *buttons = new Bounce[NUM_BUTTONS];          // Initiate 3 Bounce objects
 bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the buttonStates
 bool *pButtonStates = &buttonStates[0];             // define pointer, pointing to zeroth element of buttonStates array
 
-
 /* ADC Calibration values */
 float ADC_V_Step = 0.01852;
 float ADC_A_Step = 0.01486;
@@ -89,7 +88,6 @@ PMEASUREMENT pData = &data; // point to datastrucutre
 /* Timing configuration */
 unsigned long lastReadTime = 0ul;
 
-//
 void setup()
 {
   currentState = systemState::Setup; // put system to Setup state
@@ -142,8 +140,6 @@ void loop()
 
   calcPower(pData);
   motorTest(testProgram);
-
-  // output2Serial(pData);
 
 }
 
@@ -343,9 +339,9 @@ void handleButtons(bool *pState)
 }
 
 /*
-  Function: wait for single button do be pressed
+  Function: wait for single button to be pressed
   Parameters: 
-    btn_i: index of the button
+    enum buttonIndices btn_i: index of the button (YELLOW, GREEN, BLUE)
  */
 void waitforButton(enum buttonIndices btn_i)
 {
