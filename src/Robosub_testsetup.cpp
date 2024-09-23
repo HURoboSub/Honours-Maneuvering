@@ -279,8 +279,7 @@ void CalibrateVernier(void)
  */
 void selectProgram(void)
 {
-
-    testPrograms thisProgram = A;
+  testPrograms thisProgram = A;
 
 #if defined(LCD) && (LCD == 1)
     lcd.clear();
@@ -404,9 +403,7 @@ float readVernier(void)
   readValue -= VERNIER_BIAS; // Correct VERNIER_BIAS
 
   voltage = (readValue / 1023.0) * 5.0; // ADC terug naar spanning
-  force = voltage * 23.45;              // multiply by [N/V]
-  // -4.67 [0 - 10 N]
-  // -23.45 [0 - 50 N]
+  force = voltage * VERNIER_SCALING_FIFTY; // multiply by [N/V]
 
   // #ifdef DEBUG_VERNIER
   // Serial.print("voltage vernier:\t");

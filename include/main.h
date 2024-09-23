@@ -62,6 +62,9 @@
 #define CAL_AMP   1
 
 /* Vernier properties */ 
+/* Scaling factors for the two different Vernier modes  */
+#define VERNIER_SCALING_TEN 4.67 // [0 - 10 N]
+#define VERNIER_SCALING_FIFTY 23.45 //[0 - 50 N]
 
 /* LCD properties */ 
 #define LCD_addr 0x27  // i2c-address of LCD screen
