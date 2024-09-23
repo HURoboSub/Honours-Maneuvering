@@ -22,7 +22,7 @@
 
 #include "main.h" // Main header file
 
-#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
+// #define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
 // #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
@@ -345,43 +345,43 @@ void handleButtons(bool *pState)
  */
 void waitforButton(enum buttonIndices btn_i)
 {
-#ifdef DEBUG
+  #ifdef DEBUG
   Serial.print("Waiting for buttonpress of: ");
   Serial.println(btn_i);
-#endif
-
-  // Repetively read the state of the button with index btn_i
-  do
+  #endif
+  
+  if (btn_i >= 0 && btn_i <= NUM_BUTTONS) // if btn_i is a valid value
   {
-    if (btn_i >= 0 && btn_i <= NUM_BUTTONS ) // if btn_i is a valid value
+    do 
     {
-    buttons[btn_i].update(); // Update the Bounce instance
+      buttons[btn_i].update(); // Update the Bounce instance
 
-    buttonStates[btn_i] = buttons[btn_i].fell(); // change right value of this button state
+      buttonStates[btn_i] = buttons[btn_i].fell(); // change right value of this button state
 
-#ifdef DEBUG
-    if (buttons[btn_i].fell())
-    {
-      Serial.print("button: ");
-      Serial.print(btn_i);
-      Serial.println((String)" pressed\t state: " + buttonStates[btn_i]);
-    }
-    }
-    else // btn_i not valid
-     {
-        Serial.println((String) "Error btn_i not in NUM_BUTTONS");
-        break;
-    }
-#endif
-
-  } while (buttonStates[btn_i] == false); // wait until button with btn_i is pressed
+      if (buttons[btn_i].fell())
+      {
+        #ifdef DEBUG
+        Serial.print("button: ");
+        Serial.print(btn_i);
+        Serial.println((String) " pressed\t state: " + buttonStates[btn_i]);
+        #endif
+      }
+      
+    } while (buttonStates[btn_i] == false); // wait until button with btn_i is pressed
+  }
+  else
+  {
+    #ifdef DEBUG
+    Serial.println((String) "Error btn_i not in NUM_BUTTONS");
+    #endif
+  }
 }
 
 /*
   Function: Reads varnier sensor and returns value
   Parameters:
  */
-float readVernier()
+float readVernier(void)
 {
   float readValue = 0.0;
   float voltage = 0.0;
