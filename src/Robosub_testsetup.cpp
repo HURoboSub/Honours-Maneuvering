@@ -9,11 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 18-09-2024
+ * Date: 23-09-2024
  *
  * Version: 2.1.0
- *
- * CHANGELOG:
  * 
  * To Log the serialprints to textfile
  *    1. Open new platform io terminal
@@ -32,6 +30,7 @@
 #define LCD 1 // Toggle LCD 0 to 1
 
 enum testPrograms testProgram = A; // which testprogram to run
+enum direction_t direction = Forward;
 
 /* PIN DEFINTIONS */
 uint8_t VOLT_PIN = A0; // Define Voltage control
@@ -495,14 +494,14 @@ void motorTest(enum testPrograms prog)
 {
   currentState = systemState::Testing; // put system to Testing
 
-  #if defined(LCD) && (LCD == 1)
-  lcd.clear();
-  lcd.print("Testing ;)");
-  #endif
+#ifdef DEBUG
+  Serial.println((String) "Testing motorprogram:" + (int)prog);
+#endif
 
   switch (prog)
   {
   case A:
+    initMotor();
     timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     continuous_motor_test = true;
@@ -517,6 +516,7 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
       {
+        prog = B;
         continuous_motor_test = false;      // Set the bool to false to stop the while loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -525,13 +525,11 @@ void motorTest(enum testPrograms prog)
 
     break; /* Program A */
 
-  case B:
-/* Testprogramma B LADDER */
-    timer_motor_test_b.set(DUR_PROG_B, prog_b_timer_handler); // Set the timer
-                                                              //      Deze functie laat de motor door 9 standen lopen, van 1550 tot 2000. duurt intotaal 90 seconden
-                                                              //    */
-    continuous_motor_test = true;
-    while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
+    case B:
+    initMotor();
+    timer_motor_test_b.set(DUR_PROG_A, prog_b_timer_handler);
+
+    while(1)
     {
       timer_motor_test_b.update(); // Update the timer
 
@@ -539,76 +537,8 @@ void motorTest(enum testPrograms prog)
       readVernier();        // force [N]
       calcPower(pData);     // motor [A] & [V]
       output2Serial(pData); // write data to Serial
-
-      if (timer_expired >= STEPS) // Check if the loop has been played 9 times
-      {
-        continuous_motor_test = false;      // Set bool to false to stop loop
-        timer_expired = 0;                  // Reset timer_expired
-        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
-      }
     }
-    break; /* Program B */
-
-  case C:
-    /* Testprogramma C fullspeed
-    Dit laat de motor direct op fullspeed vooruit gaan*/
-
-    timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
-    while (continuous_motor_test)
-    {
-      timer_motor_test_c.update(); // Update the timer
-      // Put the vernier sensor read func here (can be another timer if needed)
-      if (timer_expired >= 4)
-      {
-        continuous_motor_test = false;      // Set bool to false to stop loop
-        timer_expired = 0;                  // Reset timer_expired
-        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
-      }
-    }
-    break; /* Program C */
-
-  case D:
-    /* Testprogramma D fullspeed achteruit
-       Dit laat de motor direct op fullspeed gaan. */
-
-    timer_motor_test_d.set(DUR_PROG_A, prog_d_timer_handler); // Set the timer
-    while (continuous_motor_test)
-    {
-      timer_motor_test_c.update(); // Update the timer
-      // Put the vernier sensor read func here (can be another timer if needed)
-      readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
-      output2Serial(pData); // write data to Serial
-
-      if (timer_expired >= 1150)
-      {
-        prog = E;
-        continuous_motor_test = false;      // Set bool to false to stop loop
-        timer_expired = 0;                  // Reset timer_expired
-        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
-      }
-    }
-    break; /* Program C */
-
-  case E:
-    timer_motor_test_e.set(DUR_PROG_A, prog_e_timer_handler); // Set the timer
-    while (continuous_motor_test)
-    {
-      timer_motor_test_e.update(); // Update the timer
-      // Put the vernier sensor read func here (can be another timer if needed)
-      readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
-      output2Serial(pData); // write data to Serial
-
-      if (timer_expired >= 1150)
-      {
-        prog = D;
-        continuous_motor_test = false;      // Set bool to false to stop loop
-        timer_expired = 0;                  // Reset timer_expired
-        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
-      }
-    }
-    break; /* Program C */
+    break;
 
   default:
 #ifdef DEBUG
@@ -715,251 +645,57 @@ void prog_a_timer_handler(void)
   timer_expired = timer_expired + 1;
 }
 
-/*
-  Function: prog_b_timer_handler
-
-  Parameters: void
-*/
 void prog_b_timer_handler(void)
 {
-  switch (motorTestState[B])
+  switch (direction)
   {
-  case NEUTRAL:
-    esc.writeMicroseconds(MTR_NEUTRAL);
-    motorTestState[B] = UPPER;
+  case Forward:
 
-#ifdef DEBUG_MOTOR
-    Serial.println((String) "micros_prog_b = " + micros_prog_b);
-#endif
-    break; /* end of case NEUTRAL */
-
-  case UPPER:
-    esc.writeMicroseconds(micros_prog_b);
-    micros_prog_b = micros_prog_b + 50;
-#ifdef DEBUG_MOTOR
-    Serial.println((String) "micros_prog_b = " + micros_prog_b);
-#endif
-    if (micros_prog_b >= MTR_MAX_ANTICLOCKWISE)
-      motorTestState[B] = LOWER; // next state of prog B
-    break;                       /* end of case UPPER */
-
-  case LOWER:
-    esc.writeMicroseconds(micros_prog_b);
-    micros_prog_b = micros_prog_b - 50;
-#ifdef DEBUG_MOTOR
-    Serial.println((String) "micros_prog_b = " + micros_prog_b);
-#endif
-
-    if (micros_prog_b <= MTR_MIN_CLOCKWISE)
-      motorTestState[B] = NEUTRAL; // next state of prog B
-    break;                         /* end of case LOWER */
-
-  case FINISHED:
-    esc.writeMicroseconds(MTR_NEUTRAL);
-    break; /* end of case FINISHED */
-
-  default:
-    esc.writeMicroseconds(MTR_NEUTRAL);
-    break;
-  }
-  timer_expired += 1; // Add one to timer_expired
-}
-
-/*
-  Function: prog_c_timer_handler
-
-  Parameters: void
-*/
-void prog_c_timer_handler(void)
-
-{
-  uint32_t i = 0;
-#ifdef DEBUG_MOTOR
-  Serial.println((String) "State = " + motorTestState[C]);
-#endif
-  switch (motorTestState[C])
-  {
-  case 0:
-    esc.writeMicroseconds(MTR_NEUTRAL);
-    motorTestState[C] = 1; // next state of prog C
-    break;
-  case 1:
-    for (i = MTR_NEUTRAL; i <= MTR_MAX_ANTICLOCKWISE; i++)
+    if (micros_prog_b == MTR_MAX_ANTICLOCKWISE)
     {
-      esc.writeMicroseconds(i);
-      delay(5);
-    }
-    motorTestState[C] = 2; // next state of prog C
-    break;
-  case Third:
-    for (i = MTR_MAX_ANTICLOCKWISE; i <= MTR_MIN_CLOCKWISE; i--)
-    {
-      esc.writeMicroseconds(i);
-      delay(5);
-    }
-    motorTestState[C] = 3; // next state of prog C
-    break;
-  case 3:
-    for (i = MTR_MIN_CLOCKWISE; i <= MTR_NEUTRAL; i++)
-    {
-      esc.writeMicroseconds(i);
-      delay(5);
-    }
-  default:
-    esc.writeMicroseconds(MTR_NEUTRAL);
-    break;
-  }
+      lcd.clear();
+      lcd.home();
+      lcd.print("Green for");
+      lcd.setCursor(0, 1);
+      lcd.print("backwards");
 
-  timer_expired += 1; // Add one to timer_expired
-}
-
-/*
-  Function: prog_d_timer_handler
-
-  Parameters: void
-*/
-void prog_d_timer_handler(void)
-{
-#ifdef DEBUG_MOTOR
-  Serial.println((String) "wait is at" + wait);
-#endif
-
-  switch (motorTestState[A])
-  {
-  case NEUTRAL: // 0
-
-    if (wait < 5)
-      esc.writeMicroseconds(MTR_NEUTRAL);
-
-    wait += 1;
-
-    if (wait >= WAIT_TIME)
-    {
-      motorTestState[A] = ADDING; // Next phases is increasing speed
-      wait = 0;
-    }
-    break;
-
-  case ADDING: // 1
-#ifdef DEBUG_MOTOR
-    Serial.println("Reached case Adding");
-#endif
-
-    if (micros_prog_a >= MTR_MAX_ANTICLOCKWISE)
-    {
-      wait += 1;
-      if (wait >= WAIT_TIME)
+      do
       {
-        motorTestState[A] = SUBTRACTING;
-        wait = 0;
-      }
+        handleButtons(pButtonStates);
+      } while (buttonStates[1] == false); // Wait until green button has been pressed
+
+      direction = Backward; // Change direction
     }
+
     else
-    {
+      esc.writeMicroseconds(micros_prog_b = micros_prog_b + MTR_INCREMENT);
 
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
-#ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_a);
-#endif
-    }
-    break; // End of ADDING
-
-  case SUBTRACTING: // 2
-#ifdef DEBUG_MOTOR
-    Serial.println("Reached case Subtracting");
-#endif
-
-    if (micros_prog_a == MTR_NEUTRAL)
-    {
-      wait += 1;
-
-      if (wait >= WAIT_TIME)
-      {
-        motorTestState[A] = NEUTRAL;
-        wait = 0;
-      }
-    }
-    else
-    {
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MTR_INCREMENT);
-    }
-    break; // End of subtracting
-  }
-}
-
-/*
-  Function: prog_e_timer_handler
-
-  Parameters: void
-*/
-
-void prog_e_timer_handler(void)
-{
-#ifdef DEBUG_MOTOR
-  Serial.println((String) "wait is at" + wait);
-#endif
-
-  switch (motorTestState[A])
-  {
-  case NEUTRAL: // 0
-
-    if (wait < 5)
-      esc.writeMicroseconds(MTR_NEUTRAL);
-
-    wait += 1;
-
-    if (wait >= WAIT_TIME)
-    {
-      motorTestState[A] = SUBTRACTING; // Next phases is increasing speed
-      wait = 0;
-    }
     break;
 
-  case SUBTRACTING: // 1
-#ifdef DEBUG_MOTOR
-    Serial.println("Reached case Adding");
-#endif
-
-    if (micros_prog_a >= MTR_MAX_ANTICLOCKWISE)
-    {
-      wait += 1;
-      if (wait >= WAIT_TIME)
+    case Backward:
+    if(micros_prog_b == MTR_MIN_CLOCKWISE)
       {
-        motorTestState[A] = ADDING;
-        wait = 0;
-      }
-    }
-    else
-    {
-
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MTR_INCREMENT);
-#ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_a);
-#endif
-    }
-    break; // End of ADDING
-
-  case ADDING: // 2
-#ifdef DEBUG_MOTOR
-    Serial.println("Reached case Subtracting");
-#endif
-
-    if (micros_prog_a == NEUTRAL)
-    {
-      wait += 1;
-
-      if (wait >= WAIT_TIME)
+        lcd.clear();
+        lcd.home();
+        lcd.print("Green for");
+        lcd.setCursor(0, 1);
+        lcd.print("forwards");
+        
+      do
       {
-        motorTestState[A] = NEUTRAL;
-        wait = 0;
+        handleButtons(pButtonStates);
+      } while (buttonStates[1] == false); // Wait until green button has been pressed
+
+      direction = Forward;
       }
+      else
+        esc.writeMicroseconds(micros_prog_b = micros_prog_b - MTR_INCREMENT);
+    break;
+
+    default:
+    break;
+    
     }
-    else
-    {
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
-    }
-    break; // End of subtracting
-  }
 }
 
 /*
