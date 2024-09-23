@@ -20,7 +20,7 @@
 
 #include "main.h" // Main header file
 
-// #define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
+#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
 // #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
@@ -29,7 +29,7 @@
 
 #define LCD 1 // Toggle LCD 0 to 1
 
-enum testPrograms testProgram = A; // which testprogram to run
+enum testPrograms testProgram; // which testprogram to run
 enum direction_t direction = Forward;
 
 /* PIN DEFINTIONS */
@@ -125,7 +125,7 @@ void setup()
   CalibrateShunt(); /* Calibrate shunt */
 #endif              /* CAL_SHUNT*/
 
-  selectProgram(); // Ask to select program
+  testProgram = selectProgram(); // Ask to select program
   output2Serial(pData); // output header row to serial
   
   // motor
@@ -277,31 +277,70 @@ void CalibrateVernier(void)
   lets the user select a motor program via a button press
   Parameters: void
  */
-void selectProgram(void)
+testPrograms selectProgram(void)
 {
-  testPrograms thisProgram = A;
+  testPrograms selectedProg = A;
+  bool progSelected = false;
 
-#if defined(LCD) && (LCD == 1)
-    lcd.clear();
-    lcd.home();                               // LCD cursor to 0,0
-    lcd.print((String) "Prog" + thisProgram); // Show instruction on 1 LCD-row
-    lcd.setCursor(0, 1);                      // LCD cursor to row 2
-    lcd.print("Blue for ok");               // Show instruction on 2nd LCD-row
-#endif
+  #ifdef DEBUG
+    Serial.println("SelectProgram()");
+  #endif
 
-#ifdef DEBUG
-    Serial.println((String) "Testprogramma: " + thisProgram); // Show instruction on 1 LCD-row
-    Serial.println("Press blue for ok");
-#endif
+  while (!progSelected)
+  {
+    handleButtons(pButtonStates);
 
-  waitforButton(BLUE); // Wait until most left button has been pressed
+    if (buttonStates[YELLOW]) // Yellow is pressed selectedProg down
+    {
+      selectedProg = (testPrograms)((selectedProg +1) % NUM_PROGRAMS);
+    }
+    if (buttonStates[GREEN])
+    {
+      selectedProg = (testPrograms)((selectedProg - 1 + NUM_PROGRAMS) % NUM_PROGRAMS); // Green is pressed up
+    }
 
-#if defined(LCD) && (LCD == 1)
-  lcd.clear();
-#endif
+    #if defined(LCD) && (LCD == 1)
+      lcd.home();
+      lcd.print(selectedProg == A ? "Prog A?" : "Prog B?");
+      lcd.setCursor(0, 1);
+      lcd.print("Blue to confirm");
+    #endif
 
+    if (buttonStates[BLUE]) // Confirm button pressed
+    {
+      progSelected = true;
+
+      #if defined(LCD) && (LCD == 1)
+      lcd.clear();
+      lcd.home();
+      lcd.print("Prog selected:");
+
+      lcd.setCursor(0, 1);
+      #endif
+
+      switch (selectedProg)
+      {
+      case A:
+        lcd.print("A");
+        #ifdef DEBUG
+          Serial.println("Prog A selected");
+        #endif // DEBUG
+        break;
+      case B:
+        lcd.print("B");
+        #ifdef DEBUG
+          Serial.println("Prog B selected");
+        #endif // DEBUG
+        break;
+      default:
+        break;
+      }
+    
+    }
+  }
+
+  return selectedProg;
 }
-
 /*
   Function: InitMotor
   Puts motor to MTR_NEUTRAL µs posittion
@@ -491,9 +530,14 @@ void motorTest(enum testPrograms prog)
 {
   currentState = systemState::Testing; // put system to Testing
 
-#ifdef DEBUG
-  Serial.println((String) "Testing motorprogram:" + (int)prog);
-#endif
+  #ifdef DEBUG
+    Serial.println((String) "Testing motorprogram:" + (int)prog);
+  #endif
+
+  #if defined(LCD) && (LCD == 1)
+    lcd.clear();
+    lcd.print("Testing ;)");
+  #endif
 
   switch (prog)
   {

@@ -118,9 +118,7 @@ enum testPrograms // Motor test programs
 {
     A, // Continuos
     B, // Ladder
-    C, // Ramp
-    D, // Forward
-    E  // Backward
+    NUM_PROGRAMS
 }; 
 
 enum direction_t
@@ -131,7 +129,7 @@ enum direction_t
 
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
 void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
-void selectProgram(void);
+testPrograms selectProgram(void);
 void initMotor(void); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
