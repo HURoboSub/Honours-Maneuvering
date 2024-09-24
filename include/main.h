@@ -54,7 +54,7 @@ struct measurement // structure containing the measurements
     float current; // SHUNT
     float power; // SHUNT
     float force; // VERNIER force
-    int force_raw; // // VERNIER raw ADC value
+    int force_raw; // VERNIER raw ADC value
 };
 
 typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
@@ -67,14 +67,6 @@ enum class systemState {
     Reading,     // S2
     Testing,     // S3
     Output       // S4
-};
-
-enum testPhasesC
-{
-    First,
-    Second,
-    Third,
-    Fourth
 };
 
 /* test states program A*/
@@ -97,11 +89,6 @@ enum testPrograms // Motor test programs
 
 enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
 
-enum direction_t
-{
-    Forward,
-    Backward
-};
 
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
 void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
@@ -112,8 +99,9 @@ void waitforButton(enum buttonIndices btn_i); // wait for single button to be pr
 
 float readVernier(void); // Read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // Calculate power and store in measurement structure
-void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
+
 // void LCD_show(char **str); // UNUSED single LCD_Show function to handle .clear .cursor .print at once
+void userInterface(systemState cState); // Displays the systemstate on the LCD scren 
 void output2Serial(PMEASUREMENT p); // outputs the measurement to serial
 
 #endif /* MAIN_H */

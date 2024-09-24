@@ -31,8 +31,14 @@
 
 #define LCD 1 // Toggle LCD 0 to 1
 
+unsigned long lastReadTime = 0ul; // Track of time
+
 systemState currentState; // class storing the current system state
 enum testPrograms testProgram; // which testprogram to run
+
+/* Measurement data storage*/
+MEASUREMENT data;           // measurement data
+PMEASUREMENT pData = &data; // point to datastructure
 
 /* Button pin array */
 const uint8_t BUTTON_ARRAY[NUM_BUTTONS] = 
@@ -54,13 +60,6 @@ LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to L
 
 char const *rowOneLCD = "               "; // const pointer to a char array containing linezero of LCD
 char const *rowTwoLCD = "               "; // textrow one of LCD
-
-/* Measurement data storage*/
-MEASUREMENT data;           // measurement data
-PMEASUREMENT pData = &data; // point to datastrucutre
-
-/* Timing configuration */
-unsigned long lastReadTime = 0ul;
 
 void setup()
 {
@@ -103,7 +102,6 @@ void setup()
   testProgram = selectProgram(); // Ask to select program
   output2Serial(pData); // output header row to serial
   
-  // motor
   initMotor(); // Initialize the ESC
 }
 
@@ -116,7 +114,6 @@ void loop()
 
   calcPower(pData);
   motorTest(testProgram);
-
 }
 /*
   Function: handle button presses
@@ -137,6 +134,7 @@ void handleButtons(bool *pState)
 #endif
   }
 }
+
 /*
   Function: Calibrate the shunt for Voltage and Current
  */
@@ -469,7 +467,7 @@ void output2Serial(PMEASUREMENT p)
     currentState = systemState::Output; // put system to Output state
     userInterface(currentState);
 
-    Serial.print(millis() - lastReadTime);
+    Serial.print(millis() - lastReadTime); // time in ms
     Serial.print(",");
     Serial.print(p->force_raw);
     Serial.print(",");
