@@ -14,7 +14,7 @@
 #include "main.h"  // Main header
 #include "motor.h" // Motor header
 
-/* Extern variabeles used in motor.cpp  */
+/* EXTERN VARS used in motor.cpp  */
 extern systemState currentState;
 extern bool buttonStates[NUM_BUTTONS];
 extern PMEASUREMENT pData;    // point to datastrucutre

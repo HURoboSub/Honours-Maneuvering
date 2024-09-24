@@ -15,7 +15,7 @@
 #include "main.h"  // Main header
 #include "motor.h" // Motor header
 
-/* Extern variabeles used in vernier.cpp  */
+/* EXTERN VARS used in vernier.cpp  */
 extern systemState currentState;
 extern bool buttonStates[NUM_BUTTONS];
 extern PMEASUREMENT pData;    // point to datastrucutre
