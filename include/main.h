@@ -9,9 +9,9 @@
  *  Rutger Jansen
  *
  * Hogeschool Utrecht
- * Date: 23-09-2024
+ * Date: 24-09-2024
  *
- * Version: 2.1.0
+ * Version: 2.3.0
  *
  * CHANGELOG:
  *
@@ -22,33 +22,10 @@
 #define MAIN_H
 
 #include <Arduino.h>
-
 #include <Bounce2.h>    // button debounce lib https://github.com/thomasfredericks/Bounce2/blob/master/examples/more/bounceMore/bounceMore.ino
 #include <LiquidCrystal_I2C.h> // LCD i2c screen
-#include <Servo.h>      // Servo motor library
-#include <TimerEvent.h> // Timer Event Library to use interrupt timer for motor PWM
+
 #include <Wire.h>       // Two Wire Interface Bus (I2C)
-
-/* buttons */
-#define NUM_BUTTONS 3
-
-/* MOTOR test parameters */
-#define CYCLES 350
-#define STEPS 16
-
-#define MTR_STARTUP_DELAY_MS 3000
-
-#define MTR_MIN_CLOCKWISE 1000  // µs for max speed  clockwise
-#define MTR_NEUTRAL 1500 // µs rest thrust
-#define MTR_MAX_ANTICLOCKWISE 2000 // µs for max speed anticlockwise
-
-#define MTR_INCREMENT 1 // How much the micros should increase each time
-
-#define THRUST_LADDER 50
-#define DUR_PROG_A 5
-#define DUR_PROG_B 1000
-#define DUR_PROG_C 3000
-#define WAIT_TIME 50
 
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
@@ -83,9 +60,6 @@ struct measurement // structure containing the measurements
 typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
 typedef MEASUREMENT       *PMEASUREMENT;    // PMEASUREMENT == struct measurement*
 
-// BUTTONS
-enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
-
 // enumator for the system states
 enum class systemState {
     Setup,       // S0 Init setup state
@@ -93,7 +67,7 @@ enum class systemState {
     Reading,     // S2
     Testing,     // S3
     Output       // S4
-} currentState; // class storing the current system state
+};
 
 enum testPhasesC
 {
@@ -121,6 +95,8 @@ enum testPrograms // Motor test programs
     NUM_PROGRAMS
 }; 
 
+enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
+
 enum direction_t
 {
     Forward,
@@ -130,10 +106,6 @@ enum direction_t
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
 void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
 testPrograms selectProgram(void);
-void initMotor(void); // Initialise motor
-void motorTest(enum testPrograms prog); // Run testprogram on motor
-void prog_a_timer_handler(void);
-void prog_b_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 void waitforButton(enum buttonIndices btn_i); // wait for single button to be pressed
