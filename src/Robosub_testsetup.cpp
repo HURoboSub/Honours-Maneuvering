@@ -20,15 +20,6 @@
 
 #include "main.h" // Main header 
 
-#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
-// #define DEBUG_VERNIER
-// #define DEBUG_MOTOR
-
-#define CAL_VERNIER // Whether to calibrate Vernier at startup
-#define CAL_SHUNT // Whether to calibrate shunt at startup
-
-#define LCD 1 // Toggle LCD 0 to 1
-
 unsigned long lastReadTime = 0ul; // Track of time
 
 systemState currentState; // class storing the current system state
