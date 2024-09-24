@@ -252,7 +252,19 @@ testPrograms selectProgram(void)
 
     #if defined(LCD) && (LCD == 1)
       lcd.home();
-      lcd.print(selectedProg == A ? "Prog A?" : "Prog B?");
+      if (selectedProg == A)
+      {
+        lcd.print("Prog A?");
+      }
+      else if (selectedProg == B)
+      {
+        lcd.print("Prog B?");
+      }
+      else 
+      {
+        lcd.print("Prog C?");
+      }
+      
       lcd.setCursor(0, 1);
       lcd.print("Blue to confirm");
     #endif
@@ -281,6 +293,12 @@ testPrograms selectProgram(void)
         lcd.print("B");
         #ifdef DEBUG
           Serial.println("Prog B selected");
+        #endif // DEBUG
+        break;
+      case C:
+        lcd.print("C");
+        #ifdef DEBUG
+          Serial.println("Prog C selected");
         #endif // DEBUG
         break;
       default:
