@@ -303,7 +303,7 @@ void prog_b_timer_handler(void)
     break;
   }
 }
-
+ uint32_t i = 2000;
 void prog_c_timer_handler(void)
 {
   switch(motorTestState[C])
@@ -319,11 +319,11 @@ void prog_c_timer_handler(void)
     Serial.println("Reached case Adding");
   #endif
 
-    if(micros_prog_c != MTR_MAX_ANTICLOCKWISE)
+    if(micros_prog_c <= MTR_MAX_ANTICLOCKWISE)
     {
       esc.writeMicroseconds(micros_prog_c = micros_prog_c + MTR_INCREMENT_C);
   #ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_a);
+      Serial.println((String) "micros_prog_a = " + micros_prog_c);
   #endif
     }
     else
@@ -336,31 +336,47 @@ void prog_c_timer_handler(void)
     break; // End of ADDING
 
   case SUBTRACTING: // 2
-  uint32_t i;
+ 
   #ifdef DEBUG_MOTOR
     Serial.println("Reached case Subtracting");
   #endif
-    for(i = MTR_MAX_ANTICLOCKWISE; i == MTR_NEUTRAL; i + i - 10)
+    for(i = 2000; i >= 1500; i-=10)
     {
       esc.writeMicroseconds(i);
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
       delay(100);
     }
     motorTestState[C] = ADDING_HALVE;
+    micros_prog_c = MTR_NEUTRAL;
     
     break; // End of subtracting
 
   case ADDING_HALVE: // 3
-if(micros_prog_c != MTR_MIN_CLOCKWISE)
+
+if(micros_prog_c <= MTR_MIN_CLOCKWISE)
+    {
+      for(i = 1000; i <= 1500; i+=10)
+    {
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
+      esc.writeMicroseconds(i);
+      delay(100);
+    }
+    motorTestState[C] = NEUTRAL;
+    micros_prog_c = MTR_NEUTRAL;
+    }
+    else if(micros_prog_c >= MTR_MIN_CLOCKWISE)
     {
       esc.writeMicroseconds(micros_prog_c = micros_prog_c - MTR_INCREMENT_C);
   #ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_a);
+      Serial.println((String) "micros_prog_a = " + micros_prog_c);
   #endif
     }
-    else
-    {
-      motorTestState[C] = SUBTRACTING;
-    }
+
+    break;
 
   default:
     esc.writeMicroseconds(MTR_NEUTRAL);

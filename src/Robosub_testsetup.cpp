@@ -87,7 +87,7 @@ void setup()
 #endif              /* CAL_SHUNT*/
 
   testProgram = selectProgram(); // Ask to select program
-  output2Serial(pData); // output header row to serial
+  // output2Serial(pData); // output header row to serial
   
   initMotor(); // Initialize the ESC
 }
