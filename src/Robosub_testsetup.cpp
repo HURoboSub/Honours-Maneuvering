@@ -240,14 +240,36 @@ void CalibrateVernier(void)
 {
   float readValue = 0.0;
 
+  bool buttonStates[NUM_BUTTONS] = {false};
+
+
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
   lcd.home();                // LCD cursor to 0,0
   lcd.print("CAL vernier!"); // Show instruction on 1 LCD-row
-  lcd.setCursor(0, 1);       // LCD cursor to 0,0
-  lcd.print("Press yellow");
 #endif
 
+
+  while(buttonStates[YELLOW] == false)    // keep going until the yellow button is pressed
+  {
+    handleButtons(buttonStates);    // check if what buttons have been pressed
+
+    for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)  // take ADC readings, 10 uSeconds apart
+    {
+      readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
+      delayMicroseconds(10);  // by delaying by 25 uSeconds, 
+    }
+
+    readValue /= NUM_ADC_READINGS;  // divide total read number by amount of ADC readings
+    
+    lcd.setCursor(0, 1);       // LCD cursor to 0,0
+    lcd.print(readValue);  // print readings to LCD
+
+    delay(1000 / VERNIER_CAL_UPDATE_RATE);
+  }
+
+    VERNIER_BIAS = readValue; // write the value to the VERNIER_BIAS global variable
+/*
   waitforButton(YELLOW); // Wait until yellow button has been pressed
 
   // take average of 10 measurements
@@ -258,8 +280,8 @@ void CalibrateVernier(void)
   }
 
   readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+*/
 
-  VERNIER_BIAS = readValue;
 #ifdef DEBUG_VERNIER
   Serial.print("VERNIER_BIAS:\t");
   Serial.println(VERNIER_BIAS);
