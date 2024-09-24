@@ -15,7 +15,7 @@
 #include "motor.h" // Motor header
 
 /* Motor configuration */
-Servo esc; // Create a Servo object
+Servo esc; // Create an ESC Servo object
 
 /* Store the state of motor test program */
 // program A,       B,       C
@@ -36,7 +36,7 @@ uint32_t micros_prog_b = MTR_NEUTRAL;
 
 enum direction_t direction = Forward;
 
-/* EXTERN */
+/* Extern variabeles used in motor.cpp  */
 extern systemState currentState;
 extern bool buttonStates[NUM_BUTTONS];
 extern PMEASUREMENT pData;    // point to datastrucutre
@@ -130,7 +130,6 @@ void motorTest(enum testPrograms prog)
 
   Parameters: void
 */
-
 void prog_a_timer_handler(void)
 {
 #ifdef DEBUG_MOTOR
@@ -222,6 +221,11 @@ void prog_a_timer_handler(void)
   timer_expired = timer_expired + 1;
 }
 
+/*
+  Function: prog_b_timer_handler
+
+  Parameters: void
+*/
 void prog_b_timer_handler(void)
 {
   bool *pButtonStates = &buttonStates[0]; // define pointer, pointing to zeroth element of buttonStates array
