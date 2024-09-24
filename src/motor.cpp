@@ -34,7 +34,7 @@ uint32_t wait = 0;
 uint32_t micros_prog_a = MTR_NEUTRAL;
 uint32_t micros_prog_b = MTR_NEUTRAL;
 
-enum direction_t direction = Forward;
+enum direction_t direction = Forward; // Start  with forward
 
 /* Extern variabeles used in motor.cpp  */
 extern systemState currentState;

@@ -45,6 +45,12 @@
 #define DUR_PROG_C 3000
 #define WAIT_TIME 50
 
+enum direction_t
+{
+    Forward,
+    Backward
+};
+
 void initMotor(void);                   // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
