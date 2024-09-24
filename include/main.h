@@ -31,6 +31,15 @@
 #include "pins.h"
 #include "vernier.h"
 
+#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
+// #define DEBUG_VERNIER
+// #define DEBUG_MOTOR
+
+#define CAL_VERNIER // Whether to calibrate Vernier at startup
+#define CAL_SHUNT // Whether to calibrate shunt at startup
+
+#define LCD 1 // Toggle LCD 0 to 1
+
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
 
