@@ -34,17 +34,19 @@
 #define MTR_MAX_ANTICLOCKWISE 2000 // µs for max speed anticlockwise
 
 #define MTR_INCREMENT 1 // How much the micros should increase each time
+#define MTR_INCREMENT_C 50 // How much the microse should increase ladder
 
 #define THRUST_LADDER 50
 #define DUR_PROG_A 5
 #define DUR_PROG_B 1000
-#define DUR_PROG_C 3000
+#define DUR_PROG_C 10000
 #define WAIT_TIME 50
 
 enum testPrograms // Motor test programs
 {
     A, // Continuos
-    B, // Ladder
+    B, // Perma
+    C, // Ladder
     NUM_PROGRAMS // Closing used for modulo operation in selectedProg()
 }; 
 
@@ -58,5 +60,6 @@ void initMotor(void);                   // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
 void prog_b_timer_handler(void);
+void prog_c_timer_handler(void);
 
 #endif /* MOTOR_H */
