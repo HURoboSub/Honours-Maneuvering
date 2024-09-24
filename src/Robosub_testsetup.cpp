@@ -19,8 +19,6 @@
  */
 
 #include "main.h" // Main header 
-#include "pins.h"
-#include "motor.h" // Motor header
 
 #define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
 // #define DEBUG_VERNIER
@@ -53,9 +51,7 @@ bool buttonStates[NUM_BUTTONS] = {false};           // bool array storing the bu
 float ADC_V_Step = 0.01852;
 float ADC_A_Step = 0.01486;
 
-/* Vernier */
-float VERNIER_BIAS = 550.0;
-
+/* LCD */
 LiquidCrystal_I2C lcd(LCD_addr, LCD_COLS, LCD_ROWS); // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
 char const *rowOneLCD = "               "; // const pointer to a char array containing linezero of LCD
@@ -225,45 +221,6 @@ void CalibrateShunt(void)
   lcd.home();
 }
 
-/*
-  Function: CalibrateVernier
-  Parameters: void
- */
-void CalibrateVernier(void)
-{
-  float readValue = 0.0;
-
-#if defined(LCD) && (LCD == 1)
-  lcd.clear();
-  lcd.home();                // LCD cursor to 0,0
-  lcd.print("CAL vernier!"); // Show instruction on 1 LCD-row
-  lcd.setCursor(0, 1);       // LCD cursor to 0,0
-  lcd.print("Press yellow");
-#endif
-
-  waitforButton(YELLOW); // Wait until yellow button has been pressed
-
-  // take average of 10 measurements
-  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-  {
-    readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
-    delayMicroseconds(10);
-  }
-
-  readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
-
-  VERNIER_BIAS = readValue;
-#ifdef DEBUG_VERNIER
-  Serial.print("VERNIER_BIAS:\t");
-  Serial.println(VERNIER_BIAS);
-#endif
-
-#if defined(LCD) && (LCD == 1)
-  lcd.clear();
-  lcd.home();               // LCD cursor to 0,0
-  lcd.print("Calibrated!"); // Show instruction on 1 LCD-row
-#endif
-}
 
 /*
   Function: selectProgram(
@@ -375,45 +332,6 @@ void waitforButton(enum buttonIndices btn_i)
   }
 }
 
-/*
-  Function: Reads varnier sensor and returns value
-  Parameters:
- */
-float readVernier(void)
-{
-  float readValue = 0.0;
-  float voltage = 0.0;
-  float force = 0.0;
-
-  currentState = systemState::Reading; // put system to Reading state
-
-  readValue = analogRead(VERNIER_PIN); // single reading
-
-  pData->force_raw = readValue; // set raw value in measurement data
-
-  // #ifdef DEBUG
-  // Serial.print("raw Force (ADC):\t");
-  // Serial.print(VERNIER_BIAS);
-  // #endif
-  // for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
-  //   readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
-
-  // readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
-
-  readValue -= VERNIER_BIAS; // Correct VERNIER_BIAS
-
-  voltage = (readValue / 1023.0) * 5.0; // ADC terug naar spanning
-  force = voltage * VERNIER_SCALING_FIFTY; // multiply by [N/V]
-
-  // #ifdef DEBUG_VERNIER
-  // Serial.print("voltage vernier:\t");
-  // Serial.println(voltage);
-  // #endif
-
-  pData->force = force; // set force in structure
-
-  return force; // return calculated force
-}
 
 /*
   Function: calcPower

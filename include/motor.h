@@ -20,10 +20,6 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-#include <Arduino.h>
-#include "main.h"
-#include "pins.h"
-
 #include <Servo.h>      // Servo motor library
 #include <TimerEvent.h> // Timer Event Library to use interrupt timer for motor PWM]
 
@@ -44,6 +40,13 @@
 #define DUR_PROG_B 1000
 #define DUR_PROG_C 3000
 #define WAIT_TIME 50
+
+enum testPrograms // Motor test programs
+{
+    A, // Continuos
+    B, // Ladder
+    NUM_PROGRAMS // Closing used for modulo operation in selectedProg()
+}; 
 
 enum direction_t
 {

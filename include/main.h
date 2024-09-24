@@ -27,6 +27,10 @@
 
 #include <Wire.h>       // Two Wire Interface Bus (I2C)
 
+#include "motor.h" // Motor header
+#include "pins.h"
+#include "vernier.h"
+
 /* Measurement ADC configuration */
 #define MAX_ADC 1023
 
@@ -37,11 +41,6 @@
 
 #define CAL_VOLT  10
 #define CAL_AMP   1
-
-/* Vernier properties */ 
-/* Scaling factors for the two different Vernier modes  */
-#define VERNIER_SCALING_TEN 4.67 // [0 - 10 N]
-#define VERNIER_SCALING_FIFTY 23.45 //[0 - 50 N]
 
 /* LCD properties */ 
 #define LCD_addr 0x27  // i2c-address of LCD screen
@@ -80,24 +79,14 @@ enum class systemState {
 #define LOWER 2
 #define FINISHED 3
 
-enum testPrograms // Motor test programs
-{
-    A, // Continuos
-    B, // Ladder
-    NUM_PROGRAMS
-}; 
-
 enum buttonIndices{YELLOW, GREEN, BLUE}; // 0 1 2
 
-
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
-void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
 testPrograms selectProgram(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 void waitforButton(enum buttonIndices btn_i); // wait for single button to be pressed
 
-float readVernier(void); // Read Vernier input and return its value
 float calcPower(PMEASUREMENT p); // Calculate power and store in measurement structure
 
 // void LCD_show(char **str); // UNUSED single LCD_Show function to handle .clear .cursor .print at once

@@ -14,6 +14,12 @@
 #include "main.h"  // Main header
 #include "motor.h" // Motor header
 
+/* Extern variabeles used in motor.cpp  */
+extern systemState currentState;
+extern bool buttonStates[NUM_BUTTONS];
+extern PMEASUREMENT pData;    // point to datastrucutre
+extern LiquidCrystal_I2C lcd; // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
+
 /* Motor configuration */
 Servo esc; // Create an ESC Servo object
 
@@ -35,12 +41,6 @@ uint32_t micros_prog_a = MTR_NEUTRAL;
 uint32_t micros_prog_b = MTR_NEUTRAL;
 
 enum direction_t direction = Forward; // Start  with forward
-
-/* Extern variabeles used in motor.cpp  */
-extern systemState currentState;
-extern bool buttonStates[NUM_BUTTONS];
-extern PMEASUREMENT pData;    // point to datastrucutre
-extern LiquidCrystal_I2C lcd; // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
 /*
   Function: InitMotor
