@@ -9,7 +9,7 @@
  *  Rutger Jansen
  *
  * Hogeschool Utrecht
- * Date: 18-09-2024
+ * Date: 23-09-2024
  *
  * Version: 2.1.0
  *
@@ -62,6 +62,9 @@
 #define CAL_AMP   1
 
 /* Vernier properties */ 
+/* Scaling factors for the two different Vernier modes  */
+#define VERNIER_SCALING_TEN 4.67 // [0 - 10 N]
+#define VERNIER_SCALING_FIFTY 23.45 //[0 - 50 N]
 
 /* LCD properties */ 
 #define LCD_addr 0x27  // i2c-address of LCD screen
@@ -115,21 +118,22 @@ enum testPrograms // Motor test programs
 {
     A, // Continuos
     B, // Ladder
-    C, // Ramp
-    D, // Forward
-    E  // Backward
+    NUM_PROGRAMS
 }; 
+
+enum direction_t
+{
+    Forward,
+    Backward
+};
 
 void CalibrateShunt(void); // Calibrate the shunt for voltage and current
 void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
-void selectProgram(void);
+testPrograms selectProgram(void);
 void initMotor(void); // Initialise motor
 void motorTest(enum testPrograms prog); // Run testprogram on motor
 void prog_a_timer_handler(void);
 void prog_b_timer_handler(void);
-void prog_c_timer_handler(void);
-void prog_d_timer_handler(void);
-void prog_e_timer_handler(void);
 
 void handleButtons(bool *pState); // Handle button presses and store states in boolean array
 void waitforButton(enum buttonIndices btn_i); // wait for single button to be pressed
