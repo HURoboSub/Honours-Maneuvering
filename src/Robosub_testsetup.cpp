@@ -267,7 +267,7 @@ testPrograms selectProgram(void)
       #if defined(LCD) && (LCD == 1)
       lcd.clear();
       lcd.home();
-      lcd.print("Prog selected:");
+      lcd.print("Prog selected: ");
       #endif
 
       switch (selectedProg)

@@ -68,7 +68,7 @@ void motorTest(enum testPrograms prog)
   currentState = systemState::Testing; // put system to Testing
 
 #ifdef DEBUG
-  Serial.println((String) "Testing motorprogram:" + (int)prog);
+  Serial.println((String) "Testing motorprogram: " + (int)prog);
 #endif
 
 #if defined(LCD) && (LCD == 1)
