@@ -66,9 +66,6 @@
 #define VERNIER_SCALING_TEN 4.67 // [0 - 10 N]
 #define VERNIER_SCALING_FIFTY 23.45 //[0 - 50 N]
 
-// how many times per second should the display update to vernier value (ms)
-#define VERNIER_CAL_UPDATE_RATE 5
-
 /* LCD properties */ 
 #define LCD_addr 0x27  // i2c-address of LCD screen
 #define LCD_COLS 16    // number of chars on lcd screen
