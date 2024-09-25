@@ -257,7 +257,7 @@ void CalibrateVernier(void)
     for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)  // take ADC readings, 10 uSeconds apart
     {
       readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
-      delayMicroseconds(10); 
+      delayMicroseconds(10);  // by delaying by 25 uSeconds, 
     }
 
     readValue /= NUM_ADC_READINGS;  // divide total read number by amount of ADC readings
