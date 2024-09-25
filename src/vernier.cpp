@@ -161,7 +161,7 @@ float readVernier()
 
   pData->force_raw = readValue; // set raw value in measurement data
 
-  readValue -= VERNIER_BIAS; // Correct for VERNIER_BIAS
+  readValue -= VERNIER_FORCE_BIAS; // Correct for VERNIER_BIAS
 
   voltage = (readValue / 1023.0) * 5.0;    // ADC terug naar spanning
   force = voltage * VERNIER_SCALING_FIFTY; // multiply by [N/V]
