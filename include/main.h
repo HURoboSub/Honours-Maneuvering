@@ -31,8 +31,8 @@
 #include "pins.h"
 #include "vernier.h"
 
-#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
-#define DEBUG_VERNIER
+// #define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
+// #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
 #define CAL_VERNIER // Whether to calibrate Vernier at startup
