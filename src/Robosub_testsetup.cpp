@@ -385,6 +385,7 @@ float calcPower(PMEASUREMENT p)
  */
 void output2Serial(PMEASUREMENT p)
 {
+  #ifndef DEBUG
   if (currentState == systemState::Setup || currentState == systemState::Calibrating) // if system is in setup or Calibrating mode
   {
     currentState = systemState::Output;                                                           // put system to Output state
@@ -407,6 +408,7 @@ void output2Serial(PMEASUREMENT p)
     Serial.print(",");
     Serial.println(p->power, 2);
   }
+  #endif
 }
 
 /*
