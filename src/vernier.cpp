@@ -57,7 +57,7 @@ void calibrateVernier(void)
   {
     handleButtons(buttonStates);
     VERNIER_FORCE_BIAS = useTheForce(); // set new force Vernier bias
-    delay(50);
+    delay(10);
   } while (buttonStates[YELLOW] == false);
 
   #ifdef DEBUG_VERNIER
@@ -125,7 +125,8 @@ float useTheForce(void)
 
   readAvg -= VERNIER_BIAS;
 
-  voltage = (readAvg / 1023.0) * 5.0;    // ADC terug naar spanning
+  // calc force
+  voltage = (readAvg / 1023.0) * 5.0;      // ADC terug naar spanning
   force = voltage * VERNIER_SCALING_FIFTY; // multiply by [N/V]
 
   #if defined(LCD) && (LCD == 1)
@@ -137,7 +138,10 @@ float useTheForce(void)
     lcd.print("[N]");
   #endif
 
+  forceBias = readAvg; // set force bias
+
   #ifdef DEBUG_VERNIER
+    Serial.println((String)"VERNIER CAL ADC:\t" + forceBias);
     Serial.println((String)"VERNIER CAL force N:\t" + force);
   #endif
 
@@ -160,7 +164,8 @@ float readVernier()
 
   pData->force_raw = readValue; // set raw value in measurement data
 
-  readValue -= VERNIER_FORCE_BIAS; // Correct for VERNIER_BIAS
+  readValue -= VERNIER_BIAS; // First correct for 0N VERNIER_BIAS
+  readValue -= VERNIER_FORCE_BIAS; // Correct for force VERNIER_FORCE_BIAS
 
   voltage = (readValue / 1023.0) * 5.0;    // ADC terug naar spanning
   force = voltage * VERNIER_SCALING_FIFTY; // multiply by [N/V]
