@@ -121,7 +121,8 @@ float useTheForce(void)
   }
 
   readAvg = readSum/NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
-  
+  forceBias = readAvg; // set force bias
+
   readAvg -= VERNIER_BIAS;
 
   voltage = (readAvg / 1023.0) * 5.0;    // ADC terug naar spanning
@@ -139,8 +140,6 @@ float useTheForce(void)
   #ifdef DEBUG_VERNIER
     Serial.println((String)"VERNIER CAL force N:\t" + force);
   #endif
-
-  forceBias = readAvg; // set force bias
 
   return forceBias;
 }
