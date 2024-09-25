@@ -28,9 +28,13 @@
 
 // how many times / second should the reading on the display change
 // WARNING: THIS IS NOT COMPLETELY ACCURATE
-#define VERNIER_CAL_UPDATE_RATE 20
+#define VERNIER_CAL_UPDATE_RATE 10
 
-void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
-float readVernier(void); // Read Vernier input and return its value
+void calibrateVernier(void); // Calibrate the Vernier force sensor in balance
+float middleVernier(void);
+
+float useTheForce(void);
+
+float readVernier(); // Read Vernier input and return its value
 
 #endif /* VERNIER_H */

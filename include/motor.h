@@ -45,6 +45,7 @@ enum testPrograms // Motor test programs
 {
     A, // Continuos
     B, // Ladder
+    C, // STEP
     NUM_PROGRAMS // Closing used for modulo operation in selectedProg()
 }; 
 

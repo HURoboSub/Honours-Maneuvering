@@ -20,15 +20,6 @@
 
 #include "main.h" // Main header 
 
-#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
-// #define DEBUG_VERNIER
-// #define DEBUG_MOTOR
-
-#define CAL_VERNIER // Whether to calibrate Vernier at startup
-#define CAL_SHUNT // Whether to calibrate shunt at startup
-
-#define LCD 1 // Toggle LCD 0 to 1
-
 unsigned long lastReadTime = 0ul; // Track of time
 
 systemState currentState; // class storing the current system state
@@ -88,7 +79,7 @@ void setup()
   }
 
 #ifdef CAL_VERNIER
-  CalibrateVernier(); /* Calibrate Vernier */
+  calibrateVernier(); /* Calibrate Vernier */
 #endif                /* CAL_VERNIER */
 
 #ifdef CAL_SHUNT
@@ -241,18 +232,32 @@ testPrograms selectProgram(void)
   {
     handleButtons(pButtonStates);
 
-    if (buttonStates[YELLOW]) // Yellow is pressed selectedProg down
+    if (buttonStates[YELLOW]) // Yellow is pressed selected
     {
-      selectedProg = (testPrograms)((selectedProg +1) % NUM_PROGRAMS);
+      selectedProg = (testPrograms)((selectedProg - 1 + NUM_PROGRAMS) % NUM_PROGRAMS); // down one
     }
-    if (buttonStates[GREEN])
+    else if (buttonStates[GREEN])
     {
-      selectedProg = (testPrograms)((selectedProg - 1 + NUM_PROGRAMS) % NUM_PROGRAMS); // Green is pressed up
+      selectedProg = (testPrograms)((selectedProg + 1) % NUM_PROGRAMS); // Green is pressed up
     }
 
     #if defined(LCD) && (LCD == 1)
       lcd.home();
-      lcd.print(selectedProg == A ? "Prog A?" : "Prog B?");
+      switch (selectedProg)
+      {
+      case A:
+        lcd.print("Prog A?");
+        break;
+      case B:
+        lcd.print("Prog B?");
+        break;
+      case C:
+        lcd.print("Prog C?");
+        break;
+      default:
+        break;
+      }
+      delay(10);
       lcd.setCursor(0, 1);
       lcd.print("Blue to confirm");
     #endif
@@ -265,28 +270,34 @@ testPrograms selectProgram(void)
       lcd.clear();
       lcd.home();
       lcd.print("Prog selected:");
-
-      lcd.setCursor(0, 1);
       #endif
 
       switch (selectedProg)
       {
       case A:
+        lcd.setCursor(0, 1);
         lcd.print("A");
         #ifdef DEBUG
           Serial.println("Prog A selected");
         #endif // DEBUG
         break;
       case B:
+        lcd.setCursor(0, 1);
         lcd.print("B");
         #ifdef DEBUG
           Serial.println("Prog B selected");
         #endif // DEBUG
         break;
+      // case C:
+        lcd.setCursor(0, 1);
+        lcd.print("C");
+        #ifdef DEBUG
+          Serial.println("Prog C selected");
+        #endif // DEBUG
+        break;
       default:
         break;
       }
-    
     }
   }
 
@@ -321,7 +332,6 @@ void waitforButton(enum buttonIndices btn_i)
         Serial.println((String) " pressed\t state: " + buttonStates[btn_i]);
         #endif
       }
-      
     } while (buttonStates[btn_i] == false); // wait until button with btn_i is pressed
   }
   else
