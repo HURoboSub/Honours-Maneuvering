@@ -36,20 +36,25 @@ void CalibrateVernier(void)
   lcd.clear();
   lcd.home();                // LCD cursor to 0,0
   lcd.print("CAL vernier!"); // Show instruction on 1 LCD-row
-  lcd.setCursor(0, 1);       // LCD cursor to 0,0
-  lcd.print("Press yellow");
 #endif
 
-  waitforButton(YELLOW); // Wait until yellow button has been pressed
-
-  // take average of 10 measurements
-  for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+  while (buttonStates[YELLOW] == false)
   {
-    readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
-    delayMicroseconds(10);
-  }
+    handleButtons(buttonStates);  //update buttonstates
 
-  readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+    for (uint8_t i = 0; i < NUM_ADC_READINGS; i++)
+    {
+      readValue += analogRead(VERNIER_PIN); // Read VERNIER_PIN NUM_ADC_READINGS times and sum it
+      delayMicroseconds(10);
+    }
+
+    readValue /= NUM_ADC_READINGS; // Calculate average value (total sum / number of readings)
+
+    lcd.setCursor(0, 1); // LCD cursor to 0,0
+    lcd.print(readValue);
+
+    delay(1000 / VERNIER_CAL_UPDATE_RATE);  
+  }
 
   VERNIER_BIAS = readValue;
 #ifdef DEBUG_VERNIER
@@ -91,7 +96,7 @@ float readVernier(void)
 
   readValue -= VERNIER_BIAS; // Correct VERNIER_BIAS
 
-  voltage = (readValue / 1023.0) * 5.0; // ADC terug naar spanning
+  voltage = (readValue / 1023.0) * 5.0;    // ADC terug naar spanning
   force = voltage * VERNIER_SCALING_FIFTY; // multiply by [N/V]
 
   // #ifdef DEBUG_VERNIER

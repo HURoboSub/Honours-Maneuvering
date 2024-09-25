@@ -26,6 +26,10 @@
 #define VERNIER_SCALING_TEN 4.67 // [0 - 10 N]
 #define VERNIER_SCALING_FIFTY 23.45 //[0 - 50 N]
 
+// how many times / second should the reading on the display change
+// WARNING: THIS IS NOT COMPLETELY ACCURATE
+#define VERNIER_CAL_UPDATE_RATE 20
+
 void CalibrateVernier(void); // Calibrate the Vernier force sensor in balance
 float readVernier(void); // Read Vernier input and return its value
 
