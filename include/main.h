@@ -82,6 +82,7 @@ enum class systemState {
 #define ADDING 1
 #define SUBTRACTING 2
 #define ADDING_HALVE 3
+#define BACK_TO_THOUSAND 4
 
 /* test states program B*/
 #define UPPER 1

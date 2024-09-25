@@ -87,7 +87,7 @@ void setup()
 #endif              /* CAL_SHUNT*/
 
   testProgram = selectProgram(); // Ask to select program
-  output2Serial(pData); // output header row to serial
+  // output2Serial(pData); // output header row to serial
   
   initMotor(); // Initialize the ESC
 }
@@ -243,21 +243,19 @@ testPrograms selectProgram(void)
 
     #if defined(LCD) && (LCD == 1)
       lcd.home();
-      switch (selectedProg)
+      if (selectedProg == A)
       {
-      case A:
         lcd.print("Prog A?");
-        break;
-      case B:
-        lcd.print("Prog B?");
-        break;
-      case C:
-        lcd.print("Prog C?");
-        break;
-      default:
-        break;
       }
-      delay(10);
+      else if (selectedProg == B)
+      {
+        lcd.print("Prog B?");
+      }
+      else 
+      {
+        lcd.print("Prog C?");
+      }
+      
       lcd.setCursor(0, 1);
       lcd.print("Blue to confirm");
     #endif
@@ -288,8 +286,7 @@ testPrograms selectProgram(void)
           Serial.println("Prog B selected");
         #endif // DEBUG
         break;
-      // case C:
-        lcd.setCursor(0, 1);
+      case C:
         lcd.print("C");
         #ifdef DEBUG
           Serial.println("Prog C selected");
