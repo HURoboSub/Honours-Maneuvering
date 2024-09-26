@@ -31,8 +31,8 @@
 #include "pins.h"
 #include "vernier.h"
 
-#define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
-#define DEBUG_VERNIER
+// #define DEBUG // (un)comment to toggle (Serial) DEBUG mode 
+// #define DEBUG_VERNIER
 // #define DEBUG_MOTOR
 
 #define CAL_VERNIER // Whether to calibrate Vernier at startup
@@ -82,6 +82,7 @@ enum class systemState {
 #define ADDING 1
 #define SUBTRACTING 2
 #define ADDING_HALVE 3
+#define BACK_TO_THOUSAND 4
 
 /* test states program B*/
 #define UPPER 1
