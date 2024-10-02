@@ -25,7 +25,7 @@ Servo esc; // Create an ESC Servo object
 
 /* Store the state of motor test program */
 // program A,       B,       C
-uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, 0};
+uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, ADDING};
 
 // Create the 3 timers for each motortestprogram
 TimerEvent timer_motor_test_a;
@@ -39,6 +39,7 @@ uint32_t wait = 0;
 
 uint32_t micros_prog_a = MTR_NEUTRAL;
 uint32_t micros_prog_b = MTR_NEUTRAL;
+uint32_t micros_prog_c = MTR_NEUTRAL;
 
 enum direction_t direction = Forward; // Start  with forward
 
@@ -67,7 +68,7 @@ void motorTest(enum testPrograms prog)
   currentState = systemState::Testing; // put system to Testing
 
 #ifdef DEBUG
-  Serial.println((String) "Testing motorprogram:" + (int)prog);
+  Serial.println((String) "Testing motorprogram: " + (int)prog);
 #endif
 
 #if defined(LCD) && (LCD == 1)
@@ -93,7 +94,6 @@ void motorTest(enum testPrograms prog)
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
       {
-        prog = B;
         continuous_motor_test = false;      // Set the bool to false to stop the while loop
         timer_expired = 0;                  // Reset timer_expired
         esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
@@ -117,6 +117,30 @@ void motorTest(enum testPrograms prog)
     }
     break;
 
+    case C:
+    initMotor();
+    timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
+    //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
+    continuous_motor_test = true;
+    while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
+    {
+      timer_motor_test_c.update(); // Update the timer
+
+      // Put the vernier sensor read func here (can be another timer if needed)
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
+
+      if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
+      {
+        prog = B;
+        continuous_motor_test = false;      // Set the bool to false to stop the while loop
+        timer_expired = 0;                  // Reset timer_expired
+        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
+      }
+    }
+
+    break;
   default:
 #ifdef DEBUG
     Serial.println("ERR: Verkeerd motor test programma doorgegeven");
@@ -279,3 +303,81 @@ void prog_b_timer_handler(void)
     break;
   }
 }
+ uint32_t i = 2000;
+void prog_c_timer_handler(void)
+{
+  switch(motorTestState[C])
+  {
+  case ADDING: // 1
+  #ifdef DEBUG_MOTOR
+    Serial.println("Reached case Adding");
+  #endif
+
+    if(micros_prog_c <= MTR_MAX_ANTICLOCKWISE)
+    {
+      esc.writeMicroseconds(micros_prog_c = micros_prog_c + MTR_INCREMENT_C);
+  #ifdef DEBUG_MOTOR
+      Serial.println((String) "micros_prog_a = " + micros_prog_c);
+  #endif
+    }
+    else
+    {
+      motorTestState[C] = SUBTRACTING;
+    }
+
+      
+
+    break; // End of ADDING
+
+  case SUBTRACTING: // 2
+ 
+  #ifdef DEBUG_MOTOR
+    Serial.println("Reached case Subtracting");
+  #endif
+    for(i = 2000; i >= 1500; i-=10)
+    {
+      esc.writeMicroseconds(i);
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
+      delay(100);
+    }
+    motorTestState[C] = ADDING_HALVE;
+    micros_prog_c = MTR_NEUTRAL;
+    
+    break; // End of subtracting
+
+  case ADDING_HALVE: // 3
+
+if(micros_prog_c <= MTR_MIN_CLOCKWISE)
+    {
+      for(i = 1000; i <= 1500; i+=10)
+    {
+      readVernier();        // force [N]
+      calcPower(pData);     // motor [A] & [V]
+      output2Serial(pData); // write data to Serial
+      esc.writeMicroseconds(i);
+      delay(100);
+    }
+    motorTestState[C] = ADDING;
+    micros_prog_c = MTR_NEUTRAL;
+    }
+    else if(micros_prog_c >= MTR_MIN_CLOCKWISE)
+    {
+      esc.writeMicroseconds(micros_prog_c = micros_prog_c - MTR_INCREMENT_C);
+  #ifdef DEBUG_MOTOR
+      Serial.println((String) "micros_prog_a = " + micros_prog_c);
+  #endif
+    }
+
+    break;
+
+  default:
+    esc.writeMicroseconds(MTR_NEUTRAL);
+    break;
+  }
+
+  timer_expired = timer_expired + 1;
+
+}
+
