@@ -25,7 +25,7 @@ Servo esc; // Create an ESC Servo object
 
 /* Store the state of motor test program */
 // program A,       B,       C
-uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, 0};
+uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, ADDING};
 
 // Create the 3 timers for each motortestprogram
 TimerEvent timer_motor_test_a;
@@ -308,12 +308,6 @@ void prog_c_timer_handler(void)
 {
   switch(motorTestState[C])
   {
-    case NEUTRAL: // 0
-
-      esc.writeMicroseconds(MTR_NEUTRAL);
-      motorTestState[C] = ADDING;
-    break;
-
   case ADDING: // 1
   #ifdef DEBUG_MOTOR
     Serial.println("Reached case Adding");
@@ -365,7 +359,7 @@ if(micros_prog_c <= MTR_MIN_CLOCKWISE)
       esc.writeMicroseconds(i);
       delay(100);
     }
-    motorTestState[C] = NEUTRAL;
+    motorTestState[C] = ADDING;
     micros_prog_c = MTR_NEUTRAL;
     }
     else if(micros_prog_c >= MTR_MIN_CLOCKWISE)
