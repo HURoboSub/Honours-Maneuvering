@@ -27,7 +27,7 @@
 #define CYCLES 350
 #define STEPS 16
 
-#define MTR_STARTUP_DELAY_MS 3000
+#define MTR_STARTUP_DELAY_MS 1000
 
 #define MTR_MIN_CLOCKWISE 1000     // µs for max speed  clockwise
 #define MTR_NEUTRAL 1500           // µs rest thrust
