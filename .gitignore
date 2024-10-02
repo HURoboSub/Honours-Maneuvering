@@ -448,3 +448,5 @@ FodyWeavers.xsd
 # .metadata/.plugins/org.eclipse.e4.workbench/workbench.xmi
 
 # *.zip*
+.pio/build/project.checksum
+build/CMakeFiles/*
