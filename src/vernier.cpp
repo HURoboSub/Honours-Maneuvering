@@ -2,6 +2,7 @@
  * file: vernier.cpp
  *
  * Source file related to calibrating and reading the vernier force sensor
+ * 
  * authors:
  *  Jannick Bloemendal
  *  Niels Redegeld
@@ -9,24 +10,28 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 24-09-2024
+ * Date: 08-10-2024
  */
 
 #include "main.h"  // Main header
 #include "motor.h" // Motor header
 
-/* EXTERN VARS used in vernier.cpp  */
+/* extern variables used in vernier.cpp  */
 extern systemState currentState;
 extern bool buttonStates[NUM_BUTTONS];
-extern PMEASUREMENT pData;    // point to datastrucutre
+extern PMEASUREMENT pData;    // pointer to datastrucutre
 extern LiquidCrystal_I2C lcd; // set the LCD address to LCD_addr for a LCD_chars by LCD_lines display
 
 float VERNIER_BIAS = 0.0;
 float VERNIER_FORCE_BIAS = 0.0;
+
 /*
   Function: calibrateVernier
   Parameters: void
+  First calibrate the sensor, at 0N, vernierBias.
+  Then shift the contraweight for the system to be in the middle and set the forceBias.
  */
+
 void calibrateVernier(void)
 {
   VERNIER_BIAS = 0.0;
@@ -52,7 +57,7 @@ void calibrateVernier(void)
     lcd.clear();
   #endif
 
-  /* !!HERE A NEW COMMENT IS NEEDED */
+  /* Calibrate again but now after the system is in stable */
   do 
   {
     handleButtons(buttonStates);
@@ -73,8 +78,7 @@ void calibrateVernier(void)
 }
 
 /*
-  Function: At 0 N, take NUM_ADC_READINGS and returns bias value
-  
+  Function: At 0 N, take NUM_ADC_READINGS and returns vernierBias
  */
 float middleVernier(void)
 {
@@ -99,10 +103,8 @@ float middleVernier(void)
   return vernierBias;
 }
 
-
 /*
-  Function: At 0 N, take NUM_ADC_READINGS and returns bias value
-  
+  Function: At a set force, take NUM_ADC_READINGS and returns forceBias
  */
 float useTheForce(void)
 {
@@ -149,7 +151,7 @@ float useTheForce(void)
 }
 
 /*
-  Function: Reads vernier sensor and returns force value
+  Function: Reads vernier sensor, calculate corrected force and returns force value
   Parameters:
  */
 float readVernier()
@@ -162,7 +164,7 @@ float readVernier()
 
   readValue = analogRead(VERNIER_PIN); // single reading
 
-  pData->force_raw = readValue; // set raw value in measurement data
+  pData->force_raw = readValue; // Set raw value in measurement data
 
   readValue -= VERNIER_BIAS; // First correct for 0N VERNIER_BIAS
   readValue -= VERNIER_FORCE_BIAS; // Correct for force VERNIER_FORCE_BIAS
@@ -177,5 +179,5 @@ float readVernier()
 
   pData->force = force; // set force in structure
 
-  return force; // return calculated force
+  return force; // return calculated corrected force value
 }
