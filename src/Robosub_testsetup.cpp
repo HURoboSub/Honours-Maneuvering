@@ -1,6 +1,6 @@
 /*
  * file: Robosub_testsetup.cpp
- * Platformio code for the Robosub Arduino NANO test setup
+ * Platformio code for the Robosub Arduino NANO motortest setup
  *
  * authors:
  *  Jannick Bloemendal
@@ -9,9 +9,9 @@
  *  Rutger Janssen
  *
  * Hogeschool Utrecht
- * Date: 24-09-2024
+ * Date: 08-10-2024
  *
- * Version: 2.3.0
+ * Version: 2.4.0
  * 
  * To Log the serialprints to textfile
  *    1. Open new platform io terminal

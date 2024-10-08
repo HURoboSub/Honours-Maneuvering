@@ -11,7 +11,7 @@
  * Hogeschool Utrecht
  * Date: 08-10-2024
  *
- * Version: 2.3.0
+ * Version: 2.4.0
  *
  * CHANGELOG:
  *
