@@ -12,9 +12,9 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/.pio/build/nano/firmware.elf",
+            "executable": "C:/Users/niels/OneDrive/Documenten/GitHub/Honours-Maneuvering/.pio/build/nano/firmware.elf",
             "projectEnvName": "nano",
-            "toolchainBinDir": "/Users/jannickbloemendal/.platformio/packages/toolchain-atmelavr/bin",
+            "toolchainBinDir": "C:/Users/niels/.platformio/packages/toolchain-atmelavr/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "preLaunchTask": {
                 "type": "PlatformIO",
@@ -25,18 +25,18 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/.pio/build/nano/firmware.elf",
+            "executable": "C:/Users/niels/OneDrive/Documenten/GitHub/Honours-Maneuvering/.pio/build/nano/firmware.elf",
             "projectEnvName": "nano",
-            "toolchainBinDir": "/Users/jannickbloemendal/.platformio/packages/toolchain-atmelavr/bin",
+            "toolchainBinDir": "C:/Users/niels/.platformio/packages/toolchain-atmelavr/bin",
             "internalConsoleOptions": "openOnSessionStart"
         },
         {
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (without uploading)",
-            "executable": "/Users/jannickbloemendal/Library/CloudStorage/OneDrive-Gedeeldebibliotheken-StichtingHogeschoolUtrecht/Honours - 2023 - Documents/Maneuvering/Source-code/.pio/build/nano/firmware.elf",
+            "executable": "C:/Users/niels/OneDrive/Documenten/GitHub/Honours-Maneuvering/.pio/build/nano/firmware.elf",
             "projectEnvName": "nano",
-            "toolchainBinDir": "/Users/jannickbloemendal/.platformio/packages/toolchain-atmelavr/bin",
+            "toolchainBinDir": "C:/Users/niels/.platformio/packages/toolchain-atmelavr/bin",
             "internalConsoleOptions": "openOnSessionStart",
             "loadMode": "manual"
         }
