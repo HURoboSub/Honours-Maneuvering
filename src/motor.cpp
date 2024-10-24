@@ -268,6 +268,9 @@ void prog_b_timer_handler(void)
 
       do
       {
+        readVernier();        // force [N]
+        calcPower(pData);     // motor [A] & [V]
+        output2Serial(pData); // write data to Serial
         handleButtons(pButtonStates);
       } while (buttonStates[1] == false); // Wait until green button has been pressed
 
@@ -290,6 +293,9 @@ void prog_b_timer_handler(void)
 
       do
       {
+        readVernier();        // force [N]
+        calcPower(pData);     // motor [A] & [V]
+        output2Serial(pData); // write data to Serial
         handleButtons(pButtonStates);
       } while (buttonStates[1] == false); // Wait until green button has been pressed
 
