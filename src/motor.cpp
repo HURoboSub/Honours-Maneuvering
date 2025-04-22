@@ -28,18 +28,14 @@ Servo esc; // Create an ESC Servo object
 uint8_t motorTestState[3] = {NEUTRAL, NEUTRAL, ADDING};
 
 // Create the 3 timers for each motortestprogram
-TimerEvent timer_motor_test_a;
-TimerEvent timer_motor_test_b;
-TimerEvent timer_motor_test_c;
+TimerEvent timer_motor_test;
 
 uint8_t timer_expired = 0;
 bool continuous_motor_test = true;
 
 uint32_t wait = 0;
 
-uint32_t micros_prog_a = MTR_NEUTRAL;
-uint32_t micros_prog_b = MTR_NEUTRAL;
-uint32_t micros_prog_c = MTR_NEUTRAL;
+uint32_t micros_prog = MTR_NEUTRAL;
 
 enum direction_t direction = Forward; // Start  with forward
 
@@ -73,23 +69,23 @@ void motorTest(enum testPrograms prog)
 
 #if defined(LCD) && (LCD == 1)
   lcd.clear();
-  lcd.print("Testing ;)");
+  lcd.print("Testing ");
 #endif
 
   switch (prog)
   {
   case A:
-    initMotor();
-    timer_motor_test_a.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
+    // initMotor();
+    timer_motor_test.set(DUR_PROG_A, prog_a_timer_handler); // Set the timer
     //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
     continuous_motor_test = true;
     while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
     {
-      timer_motor_test_a.update(); // Update the timer
+      timer_motor_test.update(); // Update the timer
 
       // Put the vernier sensor read func here (can be another timer if needed)
       readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
+      // calcPower(pData);     // motor [A] & [V]
       output2Serial(pData); // write data to Serial
 
       if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
@@ -101,46 +97,6 @@ void motorTest(enum testPrograms prog)
     }
 
     break; /* Program A */
-
-  case B:
-    initMotor();
-    timer_motor_test_b.set(DUR_PROG_A, prog_b_timer_handler);
-
-    while (1)
-    {
-      timer_motor_test_b.update(); // Update the timer
-
-      // Put the vernier sensor read func here (can be another timer if needed)
-      readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
-      output2Serial(pData); // write data to Serial
-    }
-    break;
-
-    case C:
-    initMotor();
-    timer_motor_test_c.set(DUR_PROG_C, prog_c_timer_handler); // Set the timer
-    //       Laat de motor continue harder draaien, duurt DUR_PROG_A msecs*/
-    continuous_motor_test = true;
-    while (continuous_motor_test) // While loop gets played as long as continuous_motor_test is true
-    {
-      timer_motor_test_c.update(); // Update the timer
-
-      // Put the vernier sensor read func here (can be another timer if needed)
-      readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
-      output2Serial(pData); // write data to Serial
-
-      if (timer_expired >= CYCLES) // Check if the loop has been played 500 times
-      {
-        prog = B;
-        continuous_motor_test = false;      // Set the bool to false to stop the while loop
-        timer_expired = 0;                  // Reset timer_expired
-        esc.writeMicroseconds(MTR_NEUTRAL); // Set the motor to 0 RPM
-      }
-    }
-
-    break;
   default:
 #ifdef DEBUG
     Serial.println("ERR: Verkeerd motor test programma doorgegeven");
@@ -181,7 +137,7 @@ void prog_a_timer_handler(void)
     Serial.println("Reached case Adding");
   #endif
 
-    if (micros_prog_a >= MTR_MAX_ANTICLOCKWISE)
+    if (micros_prog >= MTR_MAX_ANTICLOCKWISE)
     {
       wait += 1;
       if (wait >= WAIT_TIME)
@@ -193,9 +149,9 @@ void prog_a_timer_handler(void)
     else
     {
 
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
+      esc.writeMicroseconds(micros_prog = micros_prog + MTR_INCREMENT);
   #ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_a);
+      Serial.println((String) "micros_prog = " + micros_prog);
   #endif
     }
     break; // End of ADDING
@@ -205,7 +161,7 @@ void prog_a_timer_handler(void)
     Serial.println("Reached case Subtracting");
   #endif
 
-    if (micros_prog_a == MTR_MIN_CLOCKWISE)
+    if (micros_prog == MTR_MIN_CLOCKWISE)
     {
       wait += 1;
 
@@ -217,7 +173,7 @@ void prog_a_timer_handler(void)
     }
     else
     {
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a - MTR_INCREMENT);
+      esc.writeMicroseconds(micros_prog = micros_prog - MTR_INCREMENT);
     }
     break; // End of subtracting
 
@@ -225,7 +181,7 @@ void prog_a_timer_handler(void)
   #ifdef DEBUG_MOTOR
     Serial.println("Reached case Adding_halve");
   #endif
-    if (micros_prog_a == MTR_NEUTRAL)
+    if (micros_prog == MTR_NEUTRAL)
     {
       wait += 1;
       if (wait >= WAIT_TIME)
@@ -235,7 +191,7 @@ void prog_a_timer_handler(void)
       }
     }
     else
-      esc.writeMicroseconds(micros_prog_a = micros_prog_a + MTR_INCREMENT);
+      esc.writeMicroseconds(micros_prog = micros_prog + MTR_INCREMENT);
     break; // End of ADDING_HALVE
 
   default:
@@ -243,147 +199,5 @@ void prog_a_timer_handler(void)
     break;
   }
   timer_expired = timer_expired + 1;
+  pData->micros = micros_prog; // copy to structu
 }
-
-/*
-  Function: prog_b_timer_handler
-
-  Parameters: void
-*/
-void prog_b_timer_handler(void)
-{
-  bool *pButtonStates = &buttonStates[0]; // define pointer, pointing to zeroth element of buttonStates array
-
-  switch (direction)
-  {
-  case Forward:
-
-    if (micros_prog_b == MTR_MAX_ANTICLOCKWISE)
-    {
-      lcd.clear();
-      lcd.home();
-      lcd.print("Green for");
-      lcd.setCursor(0, 1);
-      lcd.print("backwards");
-
-      do
-      {
-        readVernier();        // force [N]
-        calcPower(pData);     // motor [A] & [V]
-        output2Serial(pData); // write data to Serial
-        handleButtons(pButtonStates);
-      } while (buttonStates[1] == false); // Wait until green button has been pressed
-
-      direction = Backward; // Change direction
-    }
-
-    else
-      esc.writeMicroseconds(micros_prog_b = micros_prog_b + MTR_INCREMENT);
-
-    break;
-
-  case Backward:
-    if (micros_prog_b == MTR_MIN_CLOCKWISE)
-    {
-      lcd.clear();
-      lcd.home();
-      lcd.print("Green for");
-      lcd.setCursor(0, 1);
-      lcd.print("forwards");
-
-      do
-      {
-        readVernier();        // force [N]
-        calcPower(pData);     // motor [A] & [V]
-        output2Serial(pData); // write data to Serial
-        handleButtons(pButtonStates);
-      } while (buttonStates[1] == false); // Wait until green button has been pressed
-
-      direction = Forward;
-    }
-    else
-      esc.writeMicroseconds(micros_prog_b = micros_prog_b - MTR_INCREMENT);
-    break;
-
-  default:
-    break;
-  }
-}
- uint32_t i = 2000;
-void prog_c_timer_handler(void)
-{
-  switch(motorTestState[C])
-  {
-  case ADDING: // 1
-  #ifdef DEBUG_MOTOR
-    Serial.println("Reached case Adding");
-  #endif
-
-    if(micros_prog_c <= MTR_MAX_ANTICLOCKWISE)
-    {
-      esc.writeMicroseconds(micros_prog_c = micros_prog_c + MTR_INCREMENT_C);
-  #ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_c);
-  #endif
-    }
-    else
-    {
-      motorTestState[C] = SUBTRACTING;
-    }
-
-      
-
-    break; // End of ADDING
-
-  case SUBTRACTING: // 2
- 
-  #ifdef DEBUG_MOTOR
-    Serial.println("Reached case Subtracting");
-  #endif
-    for(i = 2000; i >= 1500; i-=10)
-    {
-      esc.writeMicroseconds(i);
-      readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
-      output2Serial(pData); // write data to Serial
-      delay(100);
-    }
-    motorTestState[C] = ADDING_HALVE;
-    micros_prog_c = MTR_NEUTRAL;
-    
-    break; // End of subtracting
-
-  case ADDING_HALVE: // 3
-
-if(micros_prog_c <= MTR_MIN_CLOCKWISE)
-    {
-      for(i = 1000; i <= 1500; i+=10)
-    {
-      readVernier();        // force [N]
-      calcPower(pData);     // motor [A] & [V]
-      output2Serial(pData); // write data to Serial
-      esc.writeMicroseconds(i);
-      delay(100);
-    }
-    motorTestState[C] = ADDING;
-    micros_prog_c = MTR_NEUTRAL;
-    }
-    else if(micros_prog_c >= MTR_MIN_CLOCKWISE)
-    {
-      esc.writeMicroseconds(micros_prog_c = micros_prog_c - MTR_INCREMENT_C);
-  #ifdef DEBUG_MOTOR
-      Serial.println((String) "micros_prog_a = " + micros_prog_c);
-  #endif
-    }
-
-    break;
-
-  default:
-    esc.writeMicroseconds(MTR_NEUTRAL);
-    break;
-  }
-
-  timer_expired = timer_expired + 1;
-
-}
-

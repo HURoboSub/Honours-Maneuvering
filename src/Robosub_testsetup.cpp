@@ -86,7 +86,7 @@ void setup()
   CalibrateShunt(); /* Calibrate shunt */
 #endif              /* CAL_SHUNT*/
 
-  testProgram = selectProgram(); // Ask to select program
+  // testProgram = selectProgram(); // Ask to select program
   // output2Serial(pData); // output header row to serial
   
   initMotor(); // Initialize the ESC
@@ -98,9 +98,7 @@ void loop()
   bool *pButtonStates = &buttonStates[0]; // define pointer, pointing to zeroth element of buttonStates array
 
   handleButtons(pButtonStates);
-
-  calcPower(pData);
-  motorTest(testProgram);
+  motorTest(A);
 }
 /*
   Function: handle button presses
@@ -386,7 +384,7 @@ void output2Serial(PMEASUREMENT p)
   if (currentState == systemState::Setup || currentState == systemState::Calibrating) // if system is in setup or Calibrating mode
   {
     currentState = systemState::Output;                                                           // put system to Output state
-    Serial.println("Time (ms), Force_raw (ADC), Force (N), Voltage (V), Current (A), Power (W)"); // print header row
+    Serial.println("Time (ms), Force_raw (ADC), Force (N), PWM (us), Voltage (V), Current (A), Power (W)"); // print header row
   }
   else // print data
   {
@@ -398,6 +396,8 @@ void output2Serial(PMEASUREMENT p)
     Serial.print(p->force_raw);
     Serial.print(",");
     Serial.print(p->force);
+    Serial.print(",");
+    Serial.println(p->micros);
     Serial.print(",");
     Serial.print(p->voltage, 2);
     Serial.print(",");

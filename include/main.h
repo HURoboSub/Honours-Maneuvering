@@ -36,7 +36,7 @@
 // #define DEBUG_MOTOR
 
 #define CAL_VERNIER // Whether to calibrate Vernier at startup
-#define CAL_SHUNT // Whether to calibrate shunt at startup
+// #define CAL_SHUNT // Whether to calibrate shunt at startup
 
 #define LCD 1 // Toggle LCD 0 to 1
 
@@ -63,6 +63,7 @@ struct measurement // structure containing the measurements
     float power; // SHUNT
     float force; // VERNIER force
     int force_raw; // VERNIER raw ADC value
+    uint32_t micros; // PWM micros
 };
 
 typedef struct measurement MEASUREMENT;     // MEASUREMENT  == struct
